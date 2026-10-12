@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f3d2a"/>
+  <rect x="136" y="84" width="240" height="330" rx="28" fill="#c9a76b"/>
+  <rect x="136" y="70" width="240" height="320" rx="28" fill="#fbf8ef"/>
+  <text x="256" y="300" font-size="210" text-anchor="middle" font-family="'Hiragino Mincho ProN','Yu Mincho','Noto Serif CJK JP',serif" font-weight="700" fill="#d32626">中</text>
+</svg>
