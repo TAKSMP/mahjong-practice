@@ -1,5 +1,6 @@
 // タイトル画面
 
+import { useState } from 'react'
 import type { Rules } from '../engine/rules'
 import type { AppSettings, PlayStats } from '../settings'
 import { TileView } from '../components/Tile'
@@ -20,6 +21,7 @@ const HINT_JP = { before: '打つ前のヒント', after: '打った直後の指
 const LEVEL_JP = { weak: 'よわい', normal: 'ふつう', strong: 'つよい' }
 
 export function TitleScreen({ canResume, stats, rules, settings, onStart, onResume, onSettings, onHelp, onResetStats }: Props) {
+  const [confirmReset, setConfirmReset] = useState(false)
   const v = stats.verdicts
   const totalV = v.best + v.good + v.soso + v.bad
   const avgRank = stats.games > 0 ? stats.ranks.reduce((a, n, i) => a + n * (i + 1), 0) / stats.games : 0
@@ -85,9 +87,21 @@ export function TitleScreen({ canResume, stats, rules, settings, onStart, onResu
               {Math.round((v.soso / totalV) * 100)}%・要注意 {Math.round((v.bad / totalV) * 100)}%
             </div>
           ) : null}
-          <button className="link-btn" onClick={() => confirm('成績をリセットしますか？') && onResetStats()}>
-            成績をリセット
-          </button>
+          {confirmReset ? (
+            <div className="reset-confirm">
+              成績を消しますか？
+              <button className="link-btn" onClick={() => { onResetStats(); setConfirmReset(false) }}>
+                消す
+              </button>
+              <button className="link-btn" onClick={() => setConfirmReset(false)}>
+                やめる
+              </button>
+            </div>
+          ) : (
+            <button className="link-btn" onClick={() => setConfirmReset(true)}>
+              成績をリセット
+            </button>
+          )}
         </div>
       ) : null}
     </div>

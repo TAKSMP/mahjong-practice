@@ -12,6 +12,7 @@
   --app-w: min(100vw, 640px);
   --ht: min(calc((var(--app-w) - 14px) / 14.6), 46px);
   -webkit-tap-highlight-color: transparent;
+  color-scheme: dark;
 }
 
 * {
@@ -1319,6 +1320,19 @@ button {
   font-size: 12px;
   margin-top: 8px;
   color: #d6e6dc;
+}
+
+.reset-confirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.reset-confirm .link-btn {
+  color: var(--accent);
+  margin: 0;
 }
 
 .stats-card .link-btn {
