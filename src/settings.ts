@@ -17,6 +17,10 @@ export interface AppSettings {
   autoPassCalls: boolean
   /** 鳴き・リーチの助言を出す */
   callAdvice: boolean
+  /** 効果音 */
+  se: boolean
+  /** 効果音の大きさ（0〜100） */
+  seVolume: number
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -26,6 +30,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   speed: 'normal',
   autoPassCalls: false,
   callAdvice: true,
+  se: true,
+  seVolume: 70,
 }
 
 const KEY_SETTINGS = 'mj-practice:settings'

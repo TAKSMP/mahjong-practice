@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Feedback } from './engine/advisor'
 import { createGame, ranking, type GameState } from './engine/game'
+import { configureSound } from './sound'
 import type { Rules } from './engine/rules'
 import { GameScreen } from './screens/GameScreen'
 import { HelpScreen } from './screens/HelpScreen'
@@ -40,6 +41,7 @@ export function App() {
   })
 
   useEffect(() => saveSettings(settings), [settings])
+  useEffect(() => configureSound(settings.se, settings.seVolume / 100), [settings.se, settings.seVolume])
   useEffect(() => saveRules(rules), [rules])
   useEffect(() => saveStats(stats), [stats])
 

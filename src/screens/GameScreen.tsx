@@ -33,6 +33,8 @@ import { TileView } from '../components/Tile'
 import { GameEndOverlay, RoundResultOverlay } from '../components/ResultOverlay'
 import { AimPanel } from '../components/AimPanel'
 import { SafetyGuide, type GuideTerm } from '../components/SafetyGuide'
+import { useGameSounds } from '../hooks/useGameSounds'
+import { playSound } from '../sound'
 import { saveGame, type AppSettings, type HintMode } from '../settings'
 
 interface Props {
@@ -85,6 +87,9 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   const myAction = ph.type === 'action' && s.turn === 0
   const myResponse = ph.type === 'response' && ph.responses[0] === null && ph.options[0] !== null
   const callOpts = ph.type === 'response' ? ph.options[0] : null
+
+  // ---- 効果音 ----
+  useGameSounds(gameRef, ver, myResponse, myAction)
 
   // ---- 吹き出し ----
   // 消すタイマーは再描画で取り消されないよう ref に持つ。
@@ -205,6 +210,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
     setSelected(null)
     setRiichiMode(false)
     setMenu(false)
+    playSound('undo')
     bump()
   }
 
@@ -252,16 +258,23 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
     if (riichiMode) {
       if (turnOpts?.riichiTiles.some((t) => kindOf(t) === kindOf(tile))) {
         if (selected === tile) discard(tile, true)
-        else setSelected(tile)
-      }
+        else {
+          setSelected(tile)
+          playSound('select')
+        }
+      } else playSound('deny')
       return
     }
     if (!canDiscard(st, 0, tile)) {
       setSelected(tile)
+      playSound('deny')
       return
     }
     if (selected === tile) discard(tile)
-    else setSelected(tile)
+    else {
+      setSelected(tile)
+      playSound('select')
+    }
   }
 
   const doTurn = (a: Parameters<typeof applyTurnAction>[1]) => {
@@ -655,6 +668,10 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
             <label className="menu-row">
               <input type="checkbox" checked={settings.showNames} onChange={(e) => onSettingsChange({ ...settings, showNames: e.target.checked })} />
               牌の名前を表示
+            </label>
+            <label className="menu-row">
+              <input type="checkbox" checked={settings.se} onChange={(e) => onSettingsChange({ ...settings, se: e.target.checked })} />
+              効果音
             </label>
             <label className="menu-row">
               <input type="checkbox" checked={settings.autoPassCalls} onChange={(e) => onSettingsChange({ ...settings, autoPassCalls: e.target.checked })} />

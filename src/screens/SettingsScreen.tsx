@@ -1,6 +1,7 @@
 // ルール設定・サポート設定
 
 import { RULE_PRESETS, type Rules } from '../engine/rules'
+import { playSound } from '../sound'
 import type { AppSettings } from '../settings'
 
 interface Props {
@@ -103,6 +104,27 @@ export function SettingsScreen({ rules, settings, onRules, onSettings, onBack }:
           ]}
           onChange={(v) => st('speed', v)}
         />
+      </section>
+
+      <section className="set-section">
+        <h3>効果音</h3>
+        <Toggle label="効果音" desc="牌を切る音・ポン／チー・リーチ・和了などの効果音（BGMはありません）" value={settings.se} onChange={(v) => st('se', v)} />
+        <Choice
+          label="音の大きさ"
+          desc="押すと、その大きさで試し聞きできます"
+          value={settings.seVolume}
+          options={[
+            { v: 35, label: '小' },
+            { v: 70, label: '中' },
+            { v: 100, label: '大' },
+          ]}
+          onChange={(v) => {
+            st('seVolume', v)
+            // 音量の反映を待ってから、試し聞き
+            setTimeout(() => playSound('pon'), 60)
+          }}
+        />
+        <div className="set-desc se-note">iPhoneは、本体横のマナーモード（消音スイッチ）がオンだと鳴りません。音が出ないときは確認してください。</div>
       </section>
 
       <section className="set-section">
