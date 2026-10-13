@@ -39,12 +39,28 @@ export function setRedTiles(ids: number[]) {
 }
 export const isRedTile = (t: number) => redSet.has(t)
 
-export function Table({ s, bubble, lastDiscard }: { s: GameState; bubble: GameEvent | null; lastDiscard: { seat: number; index: number } | null }) {
+export function Table({
+  s,
+  bubble,
+  lastDiscard,
+  onAim,
+}: {
+  s: GameState
+  bubble: GameEvent | null
+  lastDiscard: { seat: number; index: number } | null
+  /** 「狙える役」の一覧に切り替える（なければボタンを出さない） */
+  onAim?: () => void
+}) {
   setRedTiles(s.redTiles)
   const ph = s.phase
   const remaining = liveRemaining(s)
   return (
     <div className="table">
+      {onAim ? (
+        <button className="aim-fab" onClick={onAim}>
+          🎯 狙える役
+        </button>
+      ) : null}
       <div className="center-box">
         {[2, 3, 0, 1].map((seat) => {
           const p = s.players[seat]

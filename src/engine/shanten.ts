@@ -11,9 +11,10 @@ interface SuitResult {
   withHead: [number, number][]
 }
 
-// 数牌（9種）と字牌（7種）でキーの意味が違うので、キャッシュを分ける
-const suitCache = new Map<number, SuitResult>()
-const honorCache = new Map<number, SuitResult>()
+// 数牌（9種）と字牌（7種）でキーの意味が違うので、キャッシュを分ける。
+// [0] = 通常、[1] = 刻子を作らない（平和狙いの計算用）
+const suitCache = [new Map<number, SuitResult>(), new Map<number, SuitResult>()]
+const honorCache = [new Map<number, SuitResult>(), new Map<number, SuitResult>()]
 
 function pareto(set: Set<number>): [number, number][] {
   const list = [...set].map((v) => [v >> 4, v & 15] as [number, number])
@@ -22,9 +23,9 @@ function pareto(set: Set<number>): [number, number][] {
   )
 }
 
-function analyzeSuit(c: number[], honor: boolean): SuitResult {
+function analyzeSuit(c: number[], honor: boolean, noTriplets = false): SuitResult {
   const n = c.length
-  const cache = honor ? honorCache : suitCache
+  const cache = (honor ? honorCache : suitCache)[noTriplets ? 1 : 0]
   let key = 0
   for (let i = 0; i < n; i++) key = key * 5 + c[i]
   const hit = cache.get(key)
@@ -38,7 +39,7 @@ function analyzeSuit(c: number[], honor: boolean): SuitResult {
       ;(head ? withHead : noHead).add(m * 16 + t)
       return
     }
-    if (c[i] >= 3) {
+    if (!noTriplets && c[i] >= 3) {
       c[i] -= 3
       rec(i, m + 1, t, head)
       c[i] += 3
@@ -51,7 +52,7 @@ function analyzeSuit(c: number[], honor: boolean): SuitResult {
     if (c[i] >= 2) {
       c[i] -= 2
       if (!head) rec(i, m, t, true)
-      rec(i, m, t + 1, head)
+      if (!noTriplets) rec(i, m, t + 1, head)
       c[i] += 2
     }
     if (!honor && i + 1 < n && c[i + 1] > 0) {
@@ -75,14 +76,31 @@ function analyzeSuit(c: number[], honor: boolean): SuitResult {
   return res
 }
 
-/** 一般形（4面子1雀頭）のシャンテン数。meldCount = 副露（暗槓含む）の数 */
-export function shantenNormal(counts: number[], meldCount = 0): number {
+export interface ShantenOpts {
+  /** 副露（暗槓含む）の数 */
+  meldCount?: number
+  /** 手牌の外で「完成した」と数える面子の数（役を決め打ちした面子など） */
+  extraM?: number
+  /** 手牌の外で「あと1枚で面子」と数える搭子の数 */
+  extraT?: number
+  /** 面子の枠だけ確保して、まだ1枚も揃っていない決め打ちの面子の数 */
+  reserved?: number
+  /** 刻子・対子の搭子を作らない（平和狙い：順子だけで作る） */
+  noTriplets?: boolean
+}
+
+/** 一般形（4面子1雀頭）のシャンテン数（役の決め打ちなどの拡張つき） */
+export function shantenNormalEx(counts: number[], o: ShantenOpts = {}): number {
+  const nt = !!o.noTriplets
   const groups: SuitResult[] = [
-    analyzeSuit(counts.slice(0, 9), false),
-    analyzeSuit(counts.slice(9, 18), false),
-    analyzeSuit(counts.slice(18, 27), false),
-    analyzeSuit(counts.slice(27, 34), true),
+    analyzeSuit(counts.slice(0, 9), false, nt),
+    analyzeSuit(counts.slice(9, 18), false, nt),
+    analyzeSuit(counts.slice(18, 27), false, nt),
+    analyzeSuit(counts.slice(27, 34), true, nt),
   ]
+  const baseM = (o.meldCount ?? 0) + (o.extraM ?? 0)
+  const extraT = o.extraT ?? 0
+  const reserved = o.reserved ?? 0
   let best = -1
   // headGroup = -1: 雀頭なし / 0..3: そのグループから雀頭
   for (let headGroup = -1; headGroup < 4; headGroup++) {
@@ -92,13 +110,32 @@ export function shantenNormal(counts: number[], meldCount = 0): number {
       for (const [m1, t1] of lists[1])
         for (const [m2, t2] of lists[2])
           for (const [m3, t3] of lists[3]) {
-            const m = m0 + m1 + m2 + m3 + meldCount
-            const t = t0 + t1 + t2 + t3
-            const v = 2 * m + Math.min(t, Math.max(0, 4 - m)) + (headGroup >= 0 ? 1 : 0)
+            const m = Math.min(m0 + m1 + m2 + m3 + baseM, 4 - reserved)
+            const t = t0 + t1 + t2 + t3 + extraT
+            const v = 2 * m + Math.min(t, Math.max(0, 4 - m - reserved)) + (headGroup >= 0 ? 1 : 0)
             if (v > best) best = v
           }
   }
   return 8 - best
+}
+
+/** 一般形（4面子1雀頭）のシャンテン数。meldCount = 副露（暗槓含む）の数 */
+export function shantenNormal(counts: number[], meldCount = 0): number {
+  return shantenNormalEx(counts, { meldCount })
+}
+
+/** 対々和（刻子だけで作る）のシャンテン数。meldCount = 副露の数（チーがあれば呼ばない） */
+export function shantenToitoi(counts: number[], meldCount = 0): number {
+  let m = meldCount
+  let pairs = 0
+  for (let k = 0; k < KIND_COUNT; k++) {
+    if (counts[k] >= 3) m++
+    else if (counts[k] === 2) pairs++
+  }
+  m = Math.min(m, 4)
+  const withHead = pairs >= 1 ? 2 * m + Math.min(pairs - 1, 4 - m) + 1 : -1
+  const noHead = 2 * m + Math.min(pairs, 4 - m)
+  return 8 - Math.max(withHead, noHead)
 }
 
 export function shantenChiitoi(counts: number[]): number {

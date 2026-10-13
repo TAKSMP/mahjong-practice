@@ -31,6 +31,7 @@ import { waitingKinds } from '../engine/shanten'
 import { MeldView, Table, isRedTile, setRedTiles } from '../components/Table'
 import { TileView } from '../components/Tile'
 import { GameEndOverlay, RoundResultOverlay } from '../components/ResultOverlay'
+import { AimPanel } from '../components/AimPanel'
 import { SafetyGuide, type GuideTerm } from '../components/SafetyGuide'
 import { saveGame, type AppSettings, type HintMode } from '../settings'
 
@@ -68,6 +69,8 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   const [bubble, setBubble] = useState<GameEvent | null>(null)
   const [showHintPanel, setShowHintPanel] = useState(true)
   const [guide, setGuide] = useState<GuideTerm | null>(null)
+  // 卓の代わりに「狙える役」の一覧を出す
+  const [aimView, setAimView] = useState(false)
   // 結果画面で再開した局は、成績を二重に数えない
   const reportedRound = useRef<number>(initial.phase.type === 'roundEnd' ? initial.roundNo : -1)
   const reportedGame = useRef(false)
@@ -463,7 +466,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   })()
 
   return (
-    <div className="game">
+    <div className={`game ${aimView && hintMode !== 'off' ? 'aim-on' : ''}`}>
       <div className="topbar">
         <button className="icon-btn" onClick={() => setMenu(true)} aria-label="メニュー">
           ☰
@@ -488,7 +491,11 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
         ) : null}
       </div>
 
-      <Table s={s} bubble={bubble} lastDiscard={lastDiscard} />
+      {aimView && hintMode !== 'off' ? (
+        <AimPanel s={s} onClose={() => setAimView(false)} />
+      ) : (
+        <Table s={s} bubble={bubble} lastDiscard={lastDiscard} onAim={hintMode !== 'off' ? () => setAimView(true) : undefined} />
+      )}
 
       <div className="bottom">
         {panel && showHintPanel ? <div className="panel-wrap">{panel}</div> : <div className="panel-wrap" />}

@@ -1761,3 +1761,305 @@ button {
   background: var(--paper);
   border-top: 1px solid #ece6d5;
 }
+
+/* ---------- 狙える役の一覧 ---------- */
+.aim-fab {
+  position: absolute;
+  right: calc(var(--T) * 0.02);
+  bottom: calc(var(--T) * 0.02);
+  z-index: 6;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: var(--accent);
+  color: #2b2210;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.table.aim-view {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px 10px;
+  overflow-y: auto;
+  background: var(--paper);
+  color: var(--paper-ink);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  -webkit-overflow-scrolling: touch;
+}
+
+.aim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aim-title {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.aim-close {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #24302a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.aim-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #4f5b55;
+}
+
+.aim-busy {
+  color: #7d8a83;
+}
+
+.aim-note {
+  margin: 0 0 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #6b766f;
+}
+
+.aim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.aim-row {
+  border-radius: 10px;
+  background: #f3efe2;
+}
+
+.aim-row.open {
+  background: #ece6d0;
+}
+
+.aim-row-main {
+  display: grid;
+  grid-template-columns: 1fr auto 3.2em;
+  grid-template-areas:
+    'name han pct'
+    'bar bar pct'
+    'sub sub caret';
+  align-items: center;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-family: inherit;
+}
+
+.aim-name {
+  grid-area: name;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.aim-han {
+  grid-area: han;
+  font-size: 11px;
+  font-weight: 800;
+  color: #b3261e;
+  white-space: nowrap;
+}
+
+.aim-pct {
+  grid-area: pct;
+  text-align: right;
+  font-size: 18px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.aim-pct.p-high,
+.aim-bar .p-high {
+  color: #157a40;
+  background: transparent;
+}
+
+.aim-pct.p-mid {
+  color: #8a6500;
+}
+
+.aim-pct.p-low {
+  color: #6b766f;
+}
+
+.aim-pct.p-wait {
+  color: #aab3ad;
+}
+
+.aim-bar {
+  grid-area: bar;
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd6c0;
+  overflow: hidden;
+}
+
+.aim-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #aab3ad;
+}
+
+.aim-bar > .p-high {
+  background: #2fb36d;
+}
+
+.aim-bar > .p-mid {
+  background: #e0a526;
+}
+
+.aim-bar > .p-low {
+  background: #98a59d;
+}
+
+.aim-sub {
+  grid-area: sub;
+  font-size: 11px;
+  color: #5b6a62;
+}
+
+.aim-caret {
+  grid-area: caret;
+  text-align: right;
+  font-size: 10px;
+  color: #8a948e;
+}
+
+.aim-detail {
+  padding: 0 10px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.aim-detail p {
+  margin: 4px 0;
+}
+
+.aim-desc {
+  font-size: 13px;
+}
+
+.aim-line.warn {
+  color: #b3261e;
+  font-weight: 700;
+}
+
+.aim-tip {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #fff6dc;
+}
+
+.aim-kv {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 6px 0;
+}
+
+.aim-k {
+  flex: none;
+  min-width: 5.5em;
+  font-size: 11px;
+  font-weight: 800;
+  color: #4f5b55;
+}
+
+.aim-tiles {
+  --tw: 20px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding-bottom: 3px;
+}
+
+.aim-tiles .tile {
+  --tw: 20px;
+}
+
+.aim-example {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #1b5c3e;
+  color: #fff;
+}
+
+.aim-example .aim-k {
+  color: #e3f0e8;
+  min-width: 0;
+}
+
+.aim-need-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.aim-need {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.aim-need .tile {
+  --tw: 20px;
+}
+
+.aim-need small,
+.aim-more {
+  font-size: 10px;
+  color: #4f5b55;
+}
+
+.aim-empty,
+.aim-foot {
+  margin: 4px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #6b766f;
+}
+
+.aim-low .link-btn {
+  margin: 2px 0 6px;
+}
+
+/* 一覧を出しているときは、手牌・ヒントを自然な大きさにして、残りを一覧に使う */
+.game.aim-on .bottom {
+  flex: 0 0 auto;
+}
+
+.game.aim-on .panel-wrap {
+  flex: 0 1 auto;
+  max-height: 24dvh;
+}
+
+.game.aim-on .table.aim-view {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+}

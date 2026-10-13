@@ -4,8 +4,9 @@ import { checkTileConservation, createGame, nextRound } from '../game'
 import { DEFAULT_RULES, RULE_PRESETS } from '../rules'
 import type { CpuLevel } from '../ai'
 import { beforeHints, discardFeedback } from '../advisor'
+import { estimateAims } from '../aim'
 
-function playGame(seed: number, level: CpuLevel, rules = DEFAULT_RULES, checkHints = false) {
+function playGame(seed: number, level: CpuLevel, rules = DEFAULT_RULES, checkHints = false, checkAim = false) {
   const s = createGame(rules, seed)
   let steps = 0
   const stats = { rounds: 0, wins: 0, draws: 0, aborts: 0, yakuman: 0, calls: 0 }
@@ -19,6 +20,16 @@ function playGame(seed: number, level: CpuLevel, rules = DEFAULT_RULES, checkHin
       expect(Math.max(h.currentShanten, 0)).toBe(minSh)
       const fb = discardFeedback(s, seat, legal[0].eval.tile, false)
       expect(fb.lines.length).toBeGreaterThan(0)
+    }
+    if (checkAim && s.phase.type === 'action' && steps % 9 === 0) {
+      // 鳴き・立直・カンなど、いろいろな局面で「狙える役」を計算しても壊れない
+      const snap = estimateAims(s, s.turn, 6)
+      for (const row of snap.rows) {
+        expect(row.prob).not.toBeNull()
+        expect(row.prob!).toBeGreaterThanOrEqual(0)
+        expect(row.prob!).toBeLessThanOrEqual(1)
+        expect(row.dist).toBeGreaterThanOrEqual(-1)
+      }
     }
     const r = autoStep(s, level, [])
     steps++
@@ -61,7 +72,7 @@ describe('CPU同士の対局シミュレーション', () => {
     expect(total.rounds).toBeGreaterThan(200)
   }, 120000)
   it('つよい／よわい／各プリセット', () => {
-    for (let i = 0; i < 10; i++) playGame(2000 + i, 'strong', DEFAULT_RULES, i < 3)
+    for (let i = 0; i < 10; i++) playGame(2000 + i, 'strong', DEFAULT_RULES, i < 3, i < 4)
     for (let i = 0; i < 10; i++) playGame(3000 + i, 'weak')
     for (const p of RULE_PRESETS) for (let i = 0; i < 5; i++) playGame(4000 + i, 'normal', p.rules)
   }, 120000)
