@@ -17,6 +17,8 @@ export interface AppSettings {
   autoPassCalls: boolean
   /** 鳴き・リーチの助言を出す */
   callAdvice: boolean
+  /** 練習モード：相手の手牌を表向きで見る */
+  openHands: boolean
   /** 効果音 */
   se: boolean
   /** 効果音の大きさ（0〜100） */
@@ -30,6 +32,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   speed: 'normal',
   autoPassCalls: false,
   callAdvice: true,
+  openHands: false,
   se: true,
   seVolume: 70,
 }

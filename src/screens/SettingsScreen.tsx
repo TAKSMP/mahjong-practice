@@ -81,6 +81,12 @@ export function SettingsScreen({ rules, settings, onRules, onSettings, onBack }:
           ]}
           onChange={(v) => st('hintMode', v)}
         />
+        <Toggle
+          label="相手の手牌を見る（練習モード）"
+          desc="対局中、他家の手牌を表向きで見ます。テンパイ・待ち・フリテンも表示。対局中のボタンや「☰」メニューでも切り替えられます"
+          value={settings.openHands}
+          onChange={(v) => st('openHands', v)}
+        />
         <Toggle label="鳴き・ロンの助言" desc="ポン・チーできるときに、鳴くべきかどうかの理由を表示" value={settings.callAdvice} onChange={(v) => st('callAdvice', v)} />
         <Toggle label="牌の名前を表示" desc="手牌の下に「5萬」「東」などの名前を出します" value={settings.showNames} onChange={(v) => st('showNames', v)} />
         <Toggle label="鳴きの確認をしない" desc="ロン以外の鳴きは自動でスルー（門前の練習に）" value={settings.autoPassCalls} onChange={(v) => st('autoPassCalls', v)} />

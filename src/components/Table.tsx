@@ -44,6 +44,8 @@ export function Table({
   bubble,
   lastDiscard,
   onAim,
+  onHands,
+  handsOn,
 }: {
   s: GameState
   bubble: GameEvent | null
@@ -51,6 +53,9 @@ export function Table({
   lastDiscard: { seat: number; index: number; strong: boolean } | null
   /** 「狙える役」の一覧に切り替える（なければボタンを出さない） */
   onAim?: () => void
+  /** 相手の手牌を見る／見ない の切り替え（なければボタンを出さない） */
+  onHands?: () => void
+  handsOn?: boolean
 }) {
   setRedTiles(s.redTiles)
   const ph = s.phase
@@ -60,6 +65,11 @@ export function Table({
       {onAim ? (
         <button className="aim-fab" onClick={onAim}>
           🎯 狙える役
+        </button>
+      ) : null}
+      {onHands ? (
+        <button className={`hands-fab ${handsOn ? 'on' : ''}`} onClick={onHands} aria-pressed={!!handsOn}>
+          👀 手牌{handsOn ? 'オープン中' : ''}
         </button>
       ) : null}
       <div className="center-box">

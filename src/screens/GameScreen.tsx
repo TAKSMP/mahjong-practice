@@ -32,6 +32,7 @@ import { MeldView, Table, isRedTile, setRedTiles } from '../components/Table'
 import { TileView } from '../components/Tile'
 import { GameEndOverlay, RoundResultOverlay } from '../components/ResultOverlay'
 import { AimPanel } from '../components/AimPanel'
+import { HandsPanel } from '../components/HandsPanel'
 import { SafetyGuide, type GuideTerm } from '../components/SafetyGuide'
 import { useGameSounds } from '../hooks/useGameSounds'
 import { playSound } from '../sound'
@@ -520,13 +521,16 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   })()
   const resultShown = (ph.type === 'roundEnd' || ph.type === 'gameEnd') && !hideResult
   const resultHidden = (ph.type === 'roundEnd' || ph.type === 'gameEnd') && hideResult
+  const isEnd = ph.type === 'roundEnd' || ph.type === 'gameEnd'
+  // 相手の手牌：練習モードがオンのとき、または結果を隠して卓を見ているとき（局の終わり・終局のあと）
+  const showHands = settings.openHands || resultHidden
   const hideResultNow = () => {
     setAimView(false)
     setHideResult(true)
   }
 
   return (
-    <div className={`game ${aimView && hintMode !== 'off' && ph.type !== 'roundEnd' && ph.type !== 'gameEnd' ? 'aim-on' : ''}`}>
+    <div className={`game ${aimView && hintMode !== 'off' && ph.type !== 'roundEnd' && ph.type !== 'gameEnd' ? 'aim-on' : ''} ${showHands ? 'hands-on' : ''}`}>
       <div className="topbar">
         <button className="icon-btn" onClick={() => setMenu(true)} aria-label="メニュー">
           ☰
@@ -554,8 +558,16 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
       {aimView && hintMode !== 'off' && ph.type !== 'roundEnd' && ph.type !== 'gameEnd' ? (
         <AimPanel s={s} onClose={() => setAimView(false)} />
       ) : (
-        <Table s={s} bubble={bubble} lastDiscard={lastDiscard} onAim={hintMode !== 'off' && ph.type !== 'roundEnd' && ph.type !== 'gameEnd' ? () => setAimView(true) : undefined} />
+        <Table
+          s={s}
+          bubble={bubble}
+          lastDiscard={lastDiscard}
+          onAim={hintMode !== 'off' && !isEnd ? () => setAimView(true) : undefined}
+          onHands={!isEnd ? () => onSettingsChange({ ...settings, openHands: !settings.openHands }) : undefined}
+          handsOn={settings.openHands}
+        />
       )}
+      {showHands ? <HandsPanel s={s} seats={[1, 2, 3]} variant="live" /> : null}
 
       <div className="bottom">
         {panel && showHintPanel ? <div className="panel-wrap">{panel}</div> : <div className="panel-wrap" />}
@@ -668,6 +680,10 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
             <label className="menu-row">
               <input type="checkbox" checked={settings.showNames} onChange={(e) => onSettingsChange({ ...settings, showNames: e.target.checked })} />
               牌の名前を表示
+            </label>
+            <label className="menu-row">
+              <input type="checkbox" checked={settings.openHands} onChange={(e) => onSettingsChange({ ...settings, openHands: e.target.checked })} />
+              👀 相手の手牌を見る（練習モード）
             </label>
             <label className="menu-row">
               <input type="checkbox" checked={settings.se} onChange={(e) => onSettingsChange({ ...settings, se: e.target.checked })} />

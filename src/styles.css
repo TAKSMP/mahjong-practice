@@ -240,8 +240,9 @@ button {
 
 /* 卓 */
 .table {
-  --T: min(var(--app-w), calc(100vh - 330px));
-  --T: min(var(--app-w), calc(100dvh - 330px));
+  /* 小さい画面でも、中身の拡縮の基準（--T）が最小サイズ(270px)を下回らないようにする */
+  --T: max(270px, min(var(--app-w), calc(100vh - 330px - var(--hands-h, 0px))));
+  --T: max(270px, min(var(--app-w), calc(100dvh - 330px - var(--hands-h, 0px))));
   --rt: calc(var(--T) * 0.052);
   position: relative;
   flex: none;
@@ -1644,7 +1645,7 @@ button {
 /* 横向き・大きな画面 */
 @media (min-aspect-ratio: 1/1) and (max-height: 600px) {
   .table {
-    --T: min(var(--app-w), calc(100dvh - 210px));
+    --T: max(270px, min(var(--app-w), calc(100dvh - 210px - var(--hands-h, 0px))));
   }
 }
 
@@ -2194,4 +2195,184 @@ button {
 
 .se-note {
   padding: 4px 0 8px;
+}
+
+/* ---------- 相手の手牌（練習モード・結果のあと） ---------- */
+.game.hands-on {
+  --hands-h: 160px;
+}
+
+.hands-fab {
+  position: absolute;
+  left: calc(var(--T) * 0.02);
+  bottom: calc(var(--T) * 0.02);
+  z-index: 6;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.hands-fab.on {
+  background: #7a4a00;
+  color: #ffe08a;
+}
+
+.hands-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hands-live {
+  flex: none;
+  width: 100%;
+  max-width: 640px;
+  margin: 6px auto 0;
+  padding: 0 6px;
+}
+
+.hands-result {
+  margin: 6px 0;
+}
+
+.hands-row {
+  padding: 4px 8px 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--ink);
+}
+
+.hands-result .hands-row {
+  background: #1b5c3e;
+  color: #fff;
+}
+
+.hands-row.hands-me {
+  box-shadow: inset 0 0 0 2px rgba(255, 213, 74, 0.55);
+}
+
+.hands-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.hands-name {
+  font-weight: 800;
+}
+
+.hands-name b {
+  margin-left: 3px;
+  color: #9fe0b6;
+}
+
+.hands-name b.dealer {
+  color: #ff9a9a;
+}
+
+.hands-score {
+  color: #c8d9ce;
+  font-variant-numeric: tabular-nums;
+}
+
+.hands-status {
+  color: #dbe9e0;
+}
+
+.hands-status.tenpai {
+  color: #ffe08a;
+  font-weight: 800;
+}
+
+.hands-chip {
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.chip-riichi {
+  background: #e5484d;
+}
+
+.chip-furiten {
+  background: #5d6b64;
+}
+
+.hands-body {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding-bottom: 3px;
+}
+
+.hands-tiles {
+  display: flex;
+  align-items: flex-end;
+}
+
+.hands-tiles .tile {
+  --tw: 17px;
+}
+
+.hands-melds {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.hands-melds .tile {
+  --tw: 15px;
+}
+
+.hands-gap {
+  width: 6px;
+}
+
+.hands-result .hands-tiles .tile {
+  --tw: min(calc((min(100vw, 520px) - 80px) / 15), 22px);
+}
+
+.hands-result .hands-melds .tile {
+  --tw: min(calc((min(100vw, 520px) - 80px) / 18), 19px);
+}
+
+.hands-section {
+  margin-top: 8px;
+}
+
+/* 背の低い画面では、手牌の帯を少し小さくして、手牌とヒントの場所を残す */
+@media (max-height: 740px) {
+  .game.hands-on {
+    --hands-h: 140px;
+  }
+
+  .hands-tiles .tile {
+    --tw: 15px;
+  }
+
+  .hands-row {
+    padding: 3px 6px 4px;
+  }
+
+  .hands-head {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+}
+
+/* 河・副露の牌は、卓（--T）が小さいときだけ一緒に縮む（通常の大きさでは24px） */
+.river .tile,
+.opp-melds .tile {
+  --tw: min(24px, calc(var(--T) * 0.0615));
 }

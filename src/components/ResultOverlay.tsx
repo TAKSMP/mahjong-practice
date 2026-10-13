@@ -6,6 +6,7 @@ import { type GameState, type WinRecord, seatWindIndex, WIND_JP } from '../engin
 import { doraFromIndicator, kindLabel, kindOf, sortTiles } from '../engine/tiles'
 import { YAKU_BY_ID } from '../engine/yakuData'
 import { paymentLabel } from '../engine/yaku'
+import { HandsPanel } from './HandsPanel'
 import { MeldView, isRedTile } from './Table'
 import { TileView } from './Tile'
 
@@ -129,6 +130,19 @@ function WinBlock({ s, w }: { s: GameState; w: WinRecord }) {
 
 const VERDICT_JP = { best: '最善', good: '良い', soso: 'もう一歩', bad: '要注意' } as const
 
+/** 全員の手牌（表向き）を、開いたり閉じたりできる欄 */
+function HandsSection({ s, title, defaultOpen }: { s: GameState; title: string; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="hands-section">
+      <button className="link-btn" onClick={() => setOpen(!open)}>
+        {open ? '▼' : '▶'} 👀 {title}
+      </button>
+      {open ? <HandsPanel s={s} seats={[0, 1, 2, 3]} variant="result" /> : null}
+    </div>
+  )
+}
+
 /** 結果を隠して、卓（最後の河）を見るためのボタン */
 function HideButton({ onHide }: { onHide: () => void }) {
   return (
@@ -195,6 +209,7 @@ export function RoundResultOverlay({
           </div>
         ) : null}
         {res.type === 'abort' ? <div className="draw-note">途中流局は点数の移動なしで、同じ親でやり直しになります（本場が1つ増えます）。</div> : null}
+        <HandsSection s={s} title="全員の手牌（この局の終わりの状態）" defaultOpen />
         <div className="score-table">
           {s.players.map((p, i) => {
             const d = res.scoreDelta[i]
@@ -267,6 +282,7 @@ export function GameEndOverlay({ s, onAgain, onTitle, onHide }: { s: GameState; 
           ))}
         </div>
         <div className="draw-note">右の数字は、ウマ・オカ込みの成績（1000点＝1.0）です。</div>
+        <HandsSection s={s} title="最後の局の手牌（全員）" defaultOpen={false} />
         <div className="overlay-buttons">
           <button className="btn btn-sub" onClick={onTitle}>
             タイトルへ
