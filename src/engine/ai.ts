@@ -126,7 +126,8 @@ function bestShantenAfterCall(s: GameState, seat: number, used: Tile[], forbidde
   return best
 }
 
-export function cpuCallAction(s: GameState, seat: number, opts: CallOptions, level: CpuLevel): CallAction {
+/** aggressive = true のときは、相手のリーチがあっても和了のために鳴く（攻めの方針の助言用） */
+export function cpuCallAction(s: GameState, seat: number, opts: CallOptions, level: CpuLevel, aggressive = false): CallAction {
   if (opts.ron) return { type: 'ron' }
   const p = s.players[seat]
   if (p.riichi) return { type: 'pass' }
@@ -135,7 +136,7 @@ export function cpuCallAction(s: GameState, seat: number, opts: CallOptions, lev
   const k = kindOf(ph.tile)
   const cur = shanten(toCounts(p.hand), p.melds.length)
   const riichiThreat = threats(s, seat).some((t) => t.reason === 'riichi')
-  if (riichiThreat && level !== 'weak' && cur >= 1) return { type: 'pass' }
+  if (riichiThreat && level !== 'weak' && cur >= 1 && !aggressive) return { type: 'pass' }
   const closedTenpai = !isOpen(p) && cur === 0
   if (closedTenpai) return { type: 'pass' }
 

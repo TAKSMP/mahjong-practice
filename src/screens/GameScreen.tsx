@@ -34,6 +34,7 @@ import { GameEndOverlay, RoundResultOverlay } from '../components/ResultOverlay'
 import { AimPanel } from '../components/AimPanel'
 import { HandsPanel } from '../components/HandsPanel'
 import { SafetyGuide, type GuideTerm } from '../components/SafetyGuide'
+import type { Policy } from '../engine/analysis'
 import { useGameSounds } from '../hooks/useGameSounds'
 import { playSound } from '../sound'
 import { saveGame, type AppSettings, type HintMode } from '../settings'
@@ -55,6 +56,11 @@ interface Snap {
 }
 
 const SPEED = { slow: 1.7, normal: 1, fast: 0.45 }
+const POLICIES: { v: Policy; label: string; desc: string }[] = [
+  { v: 'auto', label: '自動', desc: 'リーチを受けたら守り、そうでなければ和了を目指す助言' },
+  { v: 'attack', label: '攻め', desc: '相手のリーチがあっても、和了を最優先にする助言' },
+  { v: 'defend', label: '守り', desc: '放銃しない事を最優先にする助言（和了は狙わない）' },
+]
 const TAG_MARK: Record<HintTag, string> = { best: '◎', good: '○', ok: '△', bad: '×', forbidden: '' }
 
 export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewGame, onGameFinished, onRoundFinished, onOpenHelp }: Props) {
@@ -185,17 +191,17 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
 
   const hints = useMemo(() => {
     if (!myAction || hintMode !== 'before') return null
-    return beforeHints(s, 0)
+    return beforeHints(s, 0, settings.policy)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ver, myAction, hintMode])
+  }, [ver, myAction, hintMode, settings.policy])
 
   const turnOpts = useMemo(() => (myAction ? getTurnOptions(s, 0) : null), [ver, myAction]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const advice = useMemo(() => {
     if (!myResponse || !callOpts || !settings.callAdvice || hintMode === 'off') return null
-    return callAdvice(s, 0, callOpts)
+    return callAdvice(s, 0, callOpts, settings.policy)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ver, myResponse, settings.callAdvice, hintMode])
+  }, [ver, myResponse, settings.callAdvice, hintMode, settings.policy])
 
   const pushUndo = () => {
     setUndo((u) => [...u.slice(-9), { state: cloneState(gameRef.current), feedbackLen: roundFeedback.length }])
@@ -242,7 +248,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
     if (!canDiscard(st, 0, tile)) return
     pushUndo()
     let fb: Feedback | null = null
-    if (hintMode !== 'off' && !st.players[0].riichi) fb = discardFeedback(st, 0, tile, riichi)
+    if (hintMode !== 'off' && !st.players[0].riichi) fb = discardFeedback(st, 0, tile, riichi, settings.policy)
     applyTurnAction(st, { type: 'discard', tile, riichi })
     setSelected(null)
     setRiichiMode(false)
@@ -324,7 +330,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
         {h && h.tag !== 'forbidden' ? (
           <div className={`hint-badge tag-${h.tag}`}>
             <span className="hint-mark">{TAG_MARK[h.tag]}</span>
-            <span className="hint-num">{h.tag === 'bad' ? '' : h.eval.shanten === 0 ? h.eval.yakuWaitTotal : h.eval.ukeireTotal}</span>
+            <span className="hint-num">{h.badge}</span>
           </div>
         ) : (
           <div className="hint-badge hint-empty" />
@@ -396,6 +402,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
       panel = (
         <div className="panel">
           <div className="panel-head">
+            {settings.policy !== 'auto' ? <span className={`policy-chip policy-${settings.policy}`}>{settings.policy === 'defend' ? '守りの方針' : '攻めの方針'}</span> : null}
             今: {shantenText(hints.currentShanten)}
             <span className="panel-sub">（{hints.currentShanten >= 1 ? shantenHelp(hints.currentShanten) : hints.currentShanten === 0 ? '1枚切ればテンパイ' : '和了！'}）</span>
           </div>
@@ -571,6 +578,22 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
 
       <div className="bottom">
         {panel && showHintPanel ? <div className="panel-wrap">{panel}</div> : <div className="panel-wrap" />}
+        {hintMode !== 'off' ? (
+          <div className="policy-bar" role="group" aria-label="自分の方針">
+            <span className="policy-label">方針</span>
+            {POLICIES.map((o) => (
+              <button
+                key={o.v}
+                className={`policy-btn ${settings.policy === o.v ? 'on' : ''} policy-${o.v}`}
+                onClick={() => onSettingsChange({ ...settings, policy: o.v })}
+                aria-pressed={settings.policy === o.v}
+                title={o.desc}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="actions">
           {buttons}
           {panel ? (

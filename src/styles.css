@@ -2376,3 +2376,60 @@ button {
 .opp-melds .tile {
   --tw: min(24px, calc(var(--T) * 0.0615));
 }
+
+/* ---------- 方針（自動・攻め・守り） ---------- */
+.policy-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 8px 0;
+}
+
+.policy-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.policy-btn {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  padding: 5px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.policy-btn.on {
+  border-color: transparent;
+  color: #fff;
+  background: #3a6b8f;
+}
+
+.policy-btn.on.policy-attack {
+  background: #c0392b;
+}
+
+.policy-btn.on.policy-defend {
+  background: #2f8f5b;
+}
+
+.policy-chip {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  background: #3a6b8f;
+}
+
+.policy-chip.policy-attack {
+  background: #c0392b;
+}
+
+.policy-chip.policy-defend {
+  background: #2f8f5b;
+}

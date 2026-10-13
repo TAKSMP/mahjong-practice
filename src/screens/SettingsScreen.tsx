@@ -87,6 +87,17 @@ export function SettingsScreen({ rules, settings, onRules, onSettings, onBack }:
           value={settings.openHands}
           onChange={(v) => st('openHands', v)}
         />
+        <Choice
+          label="自分の方針"
+          desc="助言を、あなたの方針に合わせます。「守り」は、和了を狙わず、放銃しない事に専念（安全な牌をおすすめ）。「攻め」は、リーチを受けても和了を優先。「自動」は、リーチを受けたら守りに切り替えます。対局中の「方針」ボタンでも変えられます。"
+          value={settings.policy}
+          options={[
+            { v: 'auto', label: '自動' },
+            { v: 'attack', label: '攻め（和了優先）' },
+            { v: 'defend', label: '守り（放銃回避）' },
+          ]}
+          onChange={(v) => st('policy', v)}
+        />
         <Toggle label="鳴き・ロンの助言" desc="ポン・チーできるときに、鳴くべきかどうかの理由を表示" value={settings.callAdvice} onChange={(v) => st('callAdvice', v)} />
         <Toggle label="牌の名前を表示" desc="手牌の下に「5萬」「東」などの名前を出します" value={settings.showNames} onChange={(v) => st('showNames', v)} />
         <Toggle label="鳴きの確認をしない" desc="ロン以外の鳴きは自動でスルー（門前の練習に）" value={settings.autoPassCalls} onChange={(v) => st('autoPassCalls', v)} />

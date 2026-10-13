@@ -1,7 +1,7 @@
 // 打牌の評価（CPUの思考と、あなたへのヒントの両方で使う）
 
 import { buildWinInput, doraIndicators, isOpen, visibleCounts, type GameState } from './game'
-import { threats, tileDanger, type Danger, type Threat } from './safety'
+import { allThreats, threats, tileDanger, type Danger, type Threat } from './safety'
 import { shanten, ukeire, type UkeireTile } from './shanten'
 import {
   doraFromIndicator,
@@ -126,12 +126,15 @@ function tieBreak(s: GameState, seat: number, t: Tile, counts: number[], doras: 
 }
 
 /** 手牌の各牌について「切ったらどうなるか」を評価する */
-export function evaluateDiscards(s: GameState, seat: number, withDanger = true): DiscardEval[] {
+/** 自分の方針：自動（状況で攻め・守りを切り替え）／攻め（和了優先）／守り（放銃回避に専念） */
+export type Policy = 'auto' | 'attack' | 'defend'
+
+export function evaluateDiscards(s: GameState, seat: number, withDanger = true, policy: Policy = 'auto'): DiscardEval[] {
   const p = s.players[seat]
   const counts = toCounts(p.hand)
   const visible = visibleCounts(s, seat)
   const doras = doraIndicators(s).map((t) => doraFromIndicator(kindOf(t)))
-  const ths = withDanger ? threats(s, seat) : []
+  const ths = withDanger ? (policy === 'defend' ? allThreats(s, seat) : threats(s, seat)) : []
   const open = isOpen(p)
   const seen = new Set<string>()
   const res: DiscardEval[] = []
@@ -192,13 +195,33 @@ export interface Recommendation {
   reason: string
 }
 
-export function recommend(s: GameState, seat: number, evals = evaluateDiscards(s, seat)): Recommendation {
+export function recommend(s: GameState, seat: number, evals?: DiscardEval[], policy: Policy = 'auto'): Recommendation {
+  evals = evals ?? evaluateDiscards(s, seat, true, policy)
   const legal = evals.filter((e) => !e.forbidden)
   const pool = legal.length > 0 ? legal : evals
   const byValue = pool.slice().sort((a, b) => b.value - a.value)
   const attackBest = byValue[0]
-  const ths = threats(s, seat)
+  const ths = policy === 'defend' ? allThreats(s, seat) : threats(s, seat)
   const riichiThreat = ths.some((t) => t.reason === 'riichi')
+  // 自分で決めた方針：攻め＝いつも和了を最優先／守り＝放銃しない事を最優先
+  if (policy === 'attack') {
+    return {
+      best: attackBest,
+      attackBest,
+      mode: 'attack',
+      threats: threats(s, seat),
+      reason: riichiThreat ? '相手のリーチを受けていますが、和了を目指す方針です。危険な牌は色で確認して、押す牌を選びましょう。' : '',
+    }
+  }
+  if (policy === 'defend') {
+    const safest = pool.slice().sort((a, b) => a.danger.score - b.danger.score || b.value - a.value)[0]
+    const reason = riichiThreat
+      ? '守りの方針です。リーチを受けているので、放銃しにくい牌（現物・スジ・カベ）を最優先で切ります。'
+      : safest.danger.score === 0
+        ? '守りの方針です。現物があるので、安全に切れます。'
+        : '守りの方針です。誰もリーチしていないので、危険度は目安（現物・スジ・カベ・字牌の見え方から）です。'
+    return { best: safest, attackBest, mode: 'defend', threats: ths, reason }
+  }
   if (!riichiThreat || s.players[seat].riichi) {
     return { best: attackBest, attackBest, mode: 'attack', threats: ths, reason: '' }
   }

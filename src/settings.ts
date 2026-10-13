@@ -1,6 +1,7 @@
 // アプリの設定（ルール以外）と保存
 
 import type { CpuLevel } from './engine/ai'
+import type { Policy } from './engine/analysis'
 import { normalizeRules, type Rules } from './engine/rules'
 
 export type HintMode = 'before' | 'after' | 'off'
@@ -17,6 +18,8 @@ export interface AppSettings {
   autoPassCalls: boolean
   /** 鳴き・リーチの助言を出す */
   callAdvice: boolean
+  /** 自分の方針：自動／攻め（和了優先）／守り（放銃回避に専念）。助言がこの方針に合わせて変わる */
+  policy: Policy
   /** 練習モード：相手の手牌を表向きで見る */
   openHands: boolean
   /** 効果音 */
@@ -32,6 +35,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   speed: 'normal',
   autoPassCalls: false,
   callAdvice: true,
+  policy: 'auto',
   openHands: false,
   se: true,
   seVolume: 70,

@@ -7,9 +7,9 @@ import { doraFromIndicator, isHonor, isDragon, kindOf, numOf, type Kind } from '
 
 export interface Threat {
   seat: number
-  /** リーチ = 1.0、3副露以上 = 0.6 */
+  /** リーチ = 1.0、3副露以上 = 0.6（守りの方針では、鳴き・門前の相手も軽く見積もる） */
   weight: number
-  reason: 'riichi' | 'open'
+  reason: 'riichi' | 'open' | 'dama'
 }
 
 export function threats(s: GameState, viewer: number): Threat[] {
@@ -18,6 +18,25 @@ export function threats(s: GameState, viewer: number): Threat[] {
     if (seat === viewer) return
     if (p.riichi) res.push({ seat, weight: 1, reason: 'riichi' })
     else if (isOpen(p) && p.melds.length >= 3) res.push({ seat, weight: 0.6, reason: 'open' })
+  })
+  return res
+}
+
+/**
+ * 守りの方針用：リーチしていない相手も「手が進んでいるかもしれない」相手として見積もる。
+ * - 誰かがリーチしているとき：リーチ者（1.0）を中心に守る。ほかは、3副露以上の相手だけ 0.5 で見る
+ * - 誰もリーチしていないとき：3副露以上 0.7、1〜2副露 0.5、門前でリーチなし（ダマの可能性）0.4
+ */
+export function allThreats(s: GameState, viewer: number): Threat[] {
+  const anyRiichi = s.players.some((p, seat) => seat !== viewer && p.riichi)
+  const res: Threat[] = []
+  s.players.forEach((p, seat) => {
+    if (seat === viewer) return
+    if (p.riichi) res.push({ seat, weight: 1, reason: 'riichi' })
+    else if (isOpen(p) && p.melds.length >= 3) res.push({ seat, weight: anyRiichi ? 0.5 : 0.7, reason: 'open' })
+    else if (anyRiichi) return
+    else if (isOpen(p)) res.push({ seat, weight: 0.5, reason: 'open' })
+    else res.push({ seat, weight: 0.4, reason: 'dama' })
   })
   return res
 }
