@@ -124,13 +124,13 @@ function Row({ r, open, expanded, onToggle }: { r: AimRow; open: boolean; expand
           ) : null}
           {r.keep.length > 0 && r.dist >= 0 ? (
             <div className="aim-kv">
-              <span className="aim-k">残したい牌</span>
+              <span className="aim-k">使っている牌（残したい）</span>
               <Tiles kinds={r.keep} />
             </div>
           ) : null}
           {r.junk.length > 0 && r.dist >= 0 ? (
             <div className="aim-kv">
-              <span className="aim-k">この役には不要な牌</span>
+              <span className="aim-k">使っていない牌（切ってよい）</span>
               <Tiles kinds={r.junk} dim />
             </div>
           ) : null}
