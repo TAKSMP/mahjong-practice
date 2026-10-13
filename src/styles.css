@@ -396,28 +396,23 @@ button {
   align-items: flex-end;
 }
 
-.bubble-anchor {
-  position: absolute;
-  top: calc(var(--T) * 0.3);
-  left: 0;
-  width: 0;
-  height: 0;
-  z-index: 5;
-}
-
 .bubble {
+  /* 卓の中央（点数の枠）に出す。河の牌にはかぶらない */
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  transform: translate(-50%, -50%);
   white-space: nowrap;
-  padding: calc(var(--T) * 0.012) calc(var(--T) * 0.035);
+  padding: calc(var(--T) * 0.01) calc(var(--T) * 0.03);
   border-radius: 999px;
-  font-size: calc(var(--T) * 0.065);
+  font-size: calc(var(--T) * 0.046);
   font-weight: 900;
   color: #fff;
   background: var(--blue);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  animation: pop 0.28s ease-out;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  animation: pop 0.25s ease-out, bubble-out 0.3s ease-in 0.85s forwards;
 }
 
 .bubble-riichi {
@@ -427,7 +422,13 @@ button {
 .bubble-ron,
 .bubble-tsumo {
   background: var(--red);
-  font-size: calc(var(--T) * 0.085);
+  font-size: calc(var(--T) * 0.065);
+}
+
+@keyframes bubble-out {
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes pop {
@@ -506,6 +507,12 @@ button {
 
 .panel-line.note {
   color: #4f5b55;
+}
+
+.panel-line.reason {
+  padding-left: 1.1em;
+  text-indent: -1.1em;
+  color: #2f3b35;
 }
 
 .panel-tip {
@@ -1498,11 +1505,12 @@ button {
   flex: 1;
   border: none;
   border-radius: 10px;
-  padding: 9px 4px;
+  padding: 9px 2px;
   background: rgba(255, 255, 255, 0.1);
   color: var(--ink);
   font-weight: 800;
-  font-size: 13px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .tab.on {
@@ -1596,4 +1604,160 @@ button {
   .table {
     --T: min(var(--app-w), calc(100dvh - 210px));
   }
+}
+
+/* ---------- 守りの解説（スジ・カベ） ---------- */
+.guide {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--paper-ink);
+}
+
+.guide p {
+  margin: 4px 0 8px;
+}
+
+.g-lead {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #eef5ef;
+}
+
+.g-sec {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid #ece6d5;
+  scroll-margin-top: 8px;
+}
+
+.g-sec h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.g-sec h4 {
+  margin: 10px 0 2px;
+  font-size: 13px;
+  color: #b3261e;
+}
+
+.g-example {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: #1b5c3e;
+  color: #fff;
+}
+
+.g-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.g-tiles {
+  --tw: 22px;
+  display: flex;
+  padding: 3px 3px 5px;
+  border-radius: 7px;
+  border: 2px solid transparent;
+}
+
+.g-safe .g-tiles {
+  border-color: #3ecf6e;
+}
+
+.g-danger .g-tiles {
+  border-color: #ff6b6b;
+}
+
+.g-wait .g-tiles {
+  border-color: #ffb347;
+}
+
+.g-cap {
+  max-width: 11em;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #e3f0e8;
+}
+
+.g-arrow {
+  align-self: center;
+  font-weight: 900;
+  color: #ffd54a;
+}
+
+.g-note {
+  align-self: center;
+  max-width: 14em;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #ffe9a8;
+}
+
+.g-point {
+  margin: 6px 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #fff6dc;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.g-legend > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.g-legend .legend {
+  flex: none;
+  min-width: 5.6em;
+  text-align: center;
+}
+
+.g-chip {
+  display: inline-block;
+  padding: 0 7px;
+  border-radius: 5px;
+  font-weight: 800;
+}
+
+.g-c-safe {
+  background: #3ecf6e;
+  color: #12331f;
+}
+
+.guide-btn {
+  display: inline-block;
+  margin-top: 6px;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #24302a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.guide-modal {
+  max-width: 560px;
+}
+
+.guide-modal .overlay-buttons {
+  position: sticky;
+  bottom: -14px;
+  margin: 12px -14px -14px;
+  padding: 10px 14px;
+  background: var(--paper);
+  border-top: 1px solid #ece6d5;
 }

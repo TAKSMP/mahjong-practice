@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { parseKinds } from '../engine/tiles'
 import { YAKU_LIST } from '../engine/yakuData'
 import { TileView } from '../components/Tile'
+import { SafetyGuide } from '../components/SafetyGuide'
 
 const TERMS: { term: string; desc: string }[] = [
   { term: '和了（あがり）', desc: '4つの面子（3枚組）と1つの雀頭（2枚組）をそろえ、役が1つ以上あると和了れます。自分で引けば「ツモ」、他人の捨て牌なら「ロン」。' },
@@ -18,9 +19,9 @@ const TERMS: { term: string; desc: string }[] = [
   { term: '門前（メンゼン）', desc: 'ポン・チー・明槓をしていない状態。リーチは門前でないとできません。' },
   { term: 'ポン・チー・カン', desc: 'ポン＝他人の捨て牌で刻子を作る。チー＝左隣（上家）の捨て牌で順子を作る。カン＝同じ牌4枚で槓子を作る（嶺上牌を1枚引く）。' },
   { term: 'フリテン', desc: '自分の待ちの牌を自分で捨てていると、ロンできません（ツモなら和了れる）。見逃した直後やリーチ後の見逃しもフリテンになります。' },
-  { term: '現物（げんぶつ）', desc: 'リーチした人がすでに捨てている牌。その人には絶対にロンされない安全牌です。' },
-  { term: 'スジ', desc: '1-4-7、2-5-8、3-6-9 の関係。例えば4萬が通っていれば1萬・7萬は両面待ちでは当たりません。' },
-  { term: '壁（かべ）', desc: 'ある牌が4枚すべて見えていると、その牌を使った両面待ちができないこと。' },
+  { term: '現物（げんぶつ）', desc: 'リーチした人がすでに捨てている牌。その人には絶対にロンされない、いちばん安全な牌です。（くわしくは「守り方」タブ）' },
+  { term: 'スジ', desc: '1-4-7、2-5-8、3-6-9 の3つおきの関係。相手が4を捨てていると、1と7は「両面待ち」には当たりません。（図つきの解説は「守り方」タブ）' },
+  { term: 'カベ', desc: '同じ牌が4枚とも見えていること。誰も持てないので、その牌を使った両面待ちが消え、近くの牌が安全になります。（図つきの解説は「守り方」タブ）' },
   { term: '押し引き', desc: 'リーチを受けたときに、勝負する（押す）か、安全な牌で守る（降りる・オリる）かの判断。' },
   { term: '親と子', desc: '東家（トンチャ）が親。親の和了は点数が1.5倍。親が和了るかテンパイで流局すると親が続きます（連荘）。' },
   { term: '本場（ほんば）', desc: '連荘や流局のたびに1つ増え、和了った人に1本場あたり300点が加算されます。' },
@@ -49,7 +50,7 @@ function Example({ s }: { s: string }) {
 }
 
 export function HelpScreen({ onBack }: { onBack: () => void }) {
-  const [tab, setTab] = useState<'yaku' | 'terms' | 'score' | 'app'>('app')
+  const [tab, setTab] = useState<'yaku' | 'terms' | 'score' | 'app' | 'defense'>('app')
   return (
     <div className="page">
       <div className="page-head">
@@ -62,6 +63,7 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
         {(
           [
             ['app', 'このアプリ'],
+            ['defense', '守り方'],
             ['yaku', '役一覧'],
             ['terms', '用語'],
             ['score', '点数'],
@@ -85,7 +87,7 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
             牌をタップすると「切るとどうなるか」（シャンテン数・受け入れ・待ちと点数・フリテンや役なしの注意）が表示されます。
           </p>
           <p>
-            リーチを受けているときは、手牌の下に<b>危険度の色</b>が出ます：
+            リーチを受けているときは、手牌の下に<b>危険度の色</b>が出ます（スジ・カベの意味は「守り方」タブ）：
             <span className="legend danger-safe">現物</span>
             <span className="legend danger-low">ほぼ安全</span>
             <span className="legend danger-mid">比較的安全</span>
@@ -99,6 +101,11 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
             <b>↩ 待った</b>：一手戻して別の牌を切り直せます。山の並びは同じなので、「この牌を切っていたらどうなったか」をそのまま試せます。
           </p>
           <p>局の結果画面では、和了った役をタップすると役の説明が見られます。</p>
+        </div>
+      ) : null}
+      {tab === 'defense' ? (
+        <div className="help-body">
+          <SafetyGuide />
         </div>
       ) : null}
       {tab === 'yaku' ? (

@@ -157,7 +157,7 @@ export function evaluateDiscards(s: GameState, seat: number, withDanger = true):
     }
     const forbidden = p.kuikae.includes(k) || (p.riichi && t !== p.drawn)
     // ↑ 代表の牌がツモ牌と同じ種類・同じ赤なら、ツモ牌が代表になっている
-    const danger = ths.length > 0 ? tileDanger(s, seat, k, ths) : { score: 0, label: '現物' as const, reasons: [], target: null }
+    const danger = ths.length > 0 ? tileDanger(s, seat, k, ths) : { score: 0, label: '現物' as const, reasons: [], terms: [], target: null }
     const eff = open ? yakuWaitTotal : uk.total
     let value = -sh * 10000 + eff * 100 + tieBreak(s, seat, t, counts, doras)
     if (sh === 0 && waits.length > 0) {

@@ -58,6 +58,11 @@ export function Table({ s, bubble, lastDiscard }: { s: GameState; bubble: GameEv
             </div>
           )
         })}
+        {bubble ? (
+          <div key={bubble.seq} className={`bubble bubble-${bubble.kind}`}>
+            {s.players[bubble.seat].name} {bubble.text}
+          </div>
+        ) : null}
         <div className="center-mid">
           <div className="center-round">{roundLabel(s)}</div>
           <div className="center-sub">
@@ -100,13 +105,6 @@ export function Table({ s, bubble, lastDiscard }: { s: GameState; bubble: GameEv
                 {p.melds.map((m, i) => (
                   <MeldView key={i} meld={m} seat={seat} small />
                 ))}
-              </div>
-            ) : null}
-            {bubble && bubble.seat === seat ? (
-              <div className="bubble-anchor">
-                <div key={bubble.seq} className={`bubble bubble-${bubble.kind}`} style={{ transform: `translate(-50%, -50%) rotate(${r * 90}deg)` }}>
-                  {bubble.text}
-                </div>
               </div>
             ) : null}
           </div>

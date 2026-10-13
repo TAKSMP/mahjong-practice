@@ -3,7 +3,7 @@
 // 「現物・スジ・壁・字牌の見え方」から推定する。
 
 import { doraIndicators, isOpen, type GameState } from './game'
-import { doraFromIndicator, isHonor, isDragon, kindLabel, kindOf, numOf, type Kind } from './tiles'
+import { doraFromIndicator, isHonor, isDragon, kindOf, numOf, type Kind } from './tiles'
 
 export interface Threat {
   seat: number
@@ -38,7 +38,10 @@ export interface Danger {
   /** 0〜100（0 = 現物） */
   score: number
   label: '現物' | 'ほぼ安全' | '比較的安全' | 'やや危険' | '危険'
+  /** 初心者向けの理由（1行ずつ、具体的な牌の名前で説明する） */
   reasons: string[]
+  /** 理由に出てくる用語（解説を開くためのタグ） */
+  terms: ('現物' | 'スジ' | 'カベ')[]
 }
 
 export function dangerLabel(score: number): Danger['label'] {
@@ -62,57 +65,95 @@ function seenCounts(s: GameState, viewer: number): number[] {
 }
 
 function dangerVs(s: GameState, k: Kind, target: number, seen: number[]): Danger {
+  const name = s.players[target].name
   const safe = genbutsu(s, target)
-  if (safe.has(k)) return { score: 0, label: '現物', reasons: [`${s.players[target].name}の現物`] }
+  if (safe.has(k)) {
+    return {
+      score: 0,
+      label: '現物',
+      reasons: [`現物：${name}がすでに捨てた牌（リーチ後に他の人が捨てて通った牌も同じ）なので、${name}にはロンされません`],
+      terms: ['現物'],
+    }
+  }
   const reasons: string[] = []
+  const terms: Danger['terms'] = []
   const doras = doraIndicators(s).map((t) => doraFromIndicator(kindOf(t)))
   let score: number
   if (isHonor(k)) {
     const v = seen[k]
     if (v >= 3) {
       score = 5
-      reasons.push(`字牌で${v}枚見えている（単騎待ちしかない）`)
+      reasons.push(`字牌：すでに${v}枚見えているので残りは${4 - v}枚。当たるのは単騎待ちくらいです`)
     } else if (v === 2) {
       score = 15
-      reasons.push('字牌で2枚見えている')
+      reasons.push('字牌：すでに2枚見えているので残りは2枚。当たるのはシャンポン待ちか単騎待ちだけです')
     } else {
       const yakuhai = isDragon(k) || k === 27 + s.roundWind || k === 27 + ((target - s.dealer + 4) % 4)
       score = v === 1 ? 25 : 35
       if (yakuhai) score += 5
-      reasons.push(v === 1 ? '字牌（1枚見え）' : '字牌（まだ見えていない）')
+      reasons.push(
+        v === 1
+          ? '字牌：1枚見えています。字牌はスジもカベもなく、シャンポン待ち・単騎待ちで当たります'
+          : '字牌：まだ1枚も見えていません。字牌はスジもカベもなく、シャンポン待ち・単騎待ちで当たります',
+      )
+      if (yakuhai) reasons.push('役牌（この人にとっての）なので、さらに持っていて待つ人が多めです')
+      if (v <= 1) terms.push('スジ', 'カベ')
     }
   } else {
     const n = numOf(k)
     const base = k - (n - 1)
+    const S = ['萬', '筒', '索'][Math.floor(k / 9)]
     const isSafe = (num: number) => safe.has(base + num - 1)
     const blocked = (num: number) => seen[base + num - 1] >= 4
-    // 両面待ちの形：下側 (n-2,n-1) → n と n-3 待ち、上側 (n+1,n+2) → n と n+3 待ち
+    // 両面待ちの形：下側 (n-2,n-1) を持っていると n-3 と n を待つ。上側 (n+1,n+2) を持っていると n と n+3 を待つ。
+    const lowShape = `${n - 2}-${n - 1}${S}の形で${n - 3}・${n}${S}待ち`
+    const upShape = `${n + 1}-${n + 2}${S}の形で${n}・${n + 3}${S}待ち`
     let open = 0
-    const sujiNote: string[] = []
-    const kabeNote: string[] = []
-    if (n - 2 >= 1 && n - 3 >= 1) {
-      if (isSafe(n - 3)) sujiNote.push(kindLabel(base + n - 4))
-      else if (blocked(n - 1) || blocked(n - 2)) kabeNote.push(kindLabel(base + (blocked(n - 1) ? n - 2 : n - 3)))
-      else open++
+    let remain = ''
+    let suji = 0
+    let kabe = 0
+    if (n - 3 >= 1) {
+      if (isSafe(n - 3)) {
+        suji++
+        reasons.push(`スジ：${n - 3}${S}が捨てられている（通っている）ので、「${lowShape}」はありえません`)
+      } else if (blocked(n - 1) || blocked(n - 2)) {
+        kabe++
+        const w = blocked(n - 1) ? n - 1 : n - 2
+        reasons.push(`カベ：${w}${S}が4枚とも見えているので、「${lowShape}」はありえません`)
+      } else {
+        open++
+        remain = lowShape
+      }
     }
     if (n + 3 <= 9) {
-      if (isSafe(n + 3)) sujiNote.push(kindLabel(base + n + 2))
-      else if (blocked(n + 1) || blocked(n + 2)) kabeNote.push(kindLabel(base + (blocked(n + 1) ? n : n + 1)))
-      else open++
+      if (isSafe(n + 3)) {
+        suji++
+        reasons.push(`スジ：${n + 3}${S}が捨てられている（通っている）ので、「${upShape}」はありえません`)
+      } else if (blocked(n + 1) || blocked(n + 2)) {
+        kabe++
+        const w = blocked(n + 1) ? n + 1 : n + 2
+        reasons.push(`カベ：${w}${S}が4枚とも見えているので、「${upShape}」はありえません`)
+      } else {
+        open++
+        remain = remain ? `${remain}」か「${upShape}` : upShape
+      }
     }
+    if (suji) terms.push('スジ')
+    if (kabe) terms.push('カベ')
+    // スジもカベも使えない牌：その意味を知りたい人のために解説を開けるようにする
+    if (suji + kabe === 0) terms.push('スジ', 'カベ')
     const terminal = n === 1 || n === 9
     const nearTerminal = n === 2 || n === 8
     if (open === 0) {
       score = terminal ? 8 : nearTerminal ? 15 : 22
-      if (sujiNote.length) reasons.push(`スジ（${sujiNote.join('・')}が通っている）`)
-      if (kabeNote.length) reasons.push(`壁（${kabeNote.join('・')}が4枚見え）`)
-      if (!sujiNote.length && !kabeNote.length) reasons.push('両面待ちでは当たらない')
+      reasons.push('両面待ちでは当たらない形です（辺張・嵌張・シャンポン・単騎では当たる可能性が残ります）')
     } else if (open === 1) {
       score = terminal ? 40 : nearTerminal ? 50 : 55
-      reasons.push(sujiNote.length ? `片スジ（${sujiNote.join('・')}が通っている）` : '無スジ')
+      if (suji + kabe > 0) reasons.push(`ただし「${remain}」の可能性は残っているので、まだ安全とは言えません`)
+      else reasons.push(`スジもカベもありません。「${remain}」で当たります`)
     } else {
       score = 72
-      reasons.push('無スジの真ん中の牌（両面待ちに2通りで当たる）')
+      reasons.push(`スジもカベもない真ん中の牌です。「${remain}」の2通りで当たります`)
     }
     // 残り枚数が少ないほどシャンポン・単騎の可能性が下がる
     if (seen[k] >= 3) score -= 5
@@ -120,15 +161,15 @@ function dangerVs(s: GameState, k: Kind, target: number, seen: number[]): Danger
   const doraCount = doras.filter((d) => d === k).length
   if (doraCount > 0) {
     score += 10
-    reasons.push('ドラ（当たると高くなりやすい）')
+    reasons.push('ドラです。当たると点数が高くなります')
   }
   score = Math.max(1, Math.min(100, score))
-  return { score, label: dangerLabel(score), reasons }
+  return { score, label: dangerLabel(score), reasons, terms }
 }
 
 /** すべての脅威に対する危険度（一番危ない相手の値） */
 export function tileDanger(s: GameState, viewer: number, k: Kind, ths = threats(s, viewer)): Danger & { target: number | null } {
-  if (ths.length === 0) return { score: 0, label: '現物', reasons: [], target: null }
+  if (ths.length === 0) return { score: 0, label: '現物', reasons: [], terms: [], target: null }
   const seen = seenCounts(s, viewer)
   let worst: (Danger & { target: number | null }) | null = null
   for (const t of ths) {

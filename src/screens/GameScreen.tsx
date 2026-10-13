@@ -31,6 +31,7 @@ import { waitingKinds } from '../engine/shanten'
 import { MeldView, Table, isRedTile, setRedTiles } from '../components/Table'
 import { TileView } from '../components/Tile'
 import { GameEndOverlay, RoundResultOverlay } from '../components/ResultOverlay'
+import { SafetyGuide, type GuideTerm } from '../components/SafetyGuide'
 import { saveGame, type AppSettings, type HintMode } from '../settings'
 
 interface Props {
@@ -66,6 +67,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   const [kanPick, setKanPick] = useState(false)
   const [bubble, setBubble] = useState<GameEvent | null>(null)
   const [showHintPanel, setShowHintPanel] = useState(true)
+  const [guide, setGuide] = useState<GuideTerm | null>(null)
   // 結果画面で再開した局は、成績を二重に数えない
   const reportedRound = useRef<number>(initial.phase.type === 'roundEnd' ? initial.roundNo : -1)
   const reportedGame = useRef(false)
@@ -80,14 +82,24 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   const callOpts = ph.type === 'response' ? ph.options[0] : null
 
   // ---- 吹き出し ----
+  // 消すタイマーは再描画で取り消されないよう ref に持つ。
+  // 続きから再開したときに、前回の「リーチ」などを出し直さない。
+  const shownSeq = useRef(initial.eventSeq)
+  const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    const ev = s.event
-    if (!ev || (bubble && bubble.seq === ev.seq)) return
+    const ev = gameRef.current.event
+    if (!ev || ev.seq === shownSeq.current) return
+    shownSeq.current = ev.seq
     setBubble(ev)
-    const id = setTimeout(() => setBubble(null), 1300)
-    return () => clearTimeout(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (bubbleTimer.current) clearTimeout(bubbleTimer.current)
+    bubbleTimer.current = setTimeout(() => setBubble(null), 1100)
   }, [ver])
+  useEffect(
+    () => () => {
+      if (bubbleTimer.current) clearTimeout(bubbleTimer.current)
+    },
+    [],
+  )
 
   // ---- 自動進行 ----
   useEffect(() => {
@@ -296,6 +308,12 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   }
 
   // ---- パネルの内容 ----
+  const guideButton = (terms: GuideTerm[]) =>
+    terms.length > 0 ? (
+      <button className="guide-btn" onClick={() => setGuide(terms[0] === '現物' && terms.length > 1 ? terms[1] : terms[0])}>
+        📖 {terms.join('・')}ってなに？（図で解説）
+      </button>
+    ) : null
   let panel: JSX.Element | null = null
   if (myResponse && callOpts) {
     panel = (
@@ -328,10 +346,11 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
           </div>
           <div className="panel-line">{selHint.summary}</div>
           {selHint.notes.map((n, i) => (
-            <div key={i} className={`panel-line ${n.startsWith('⚠') ? 'warn' : 'note'}`}>
+            <div key={i} className={`panel-line ${n.startsWith('⚠') ? 'warn' : 'note'} ${n.startsWith('・') ? 'reason' : ''}`}>
               {n}
             </div>
           ))}
+          {guideButton(selHint.terms)}
           {selHint.tag !== 'forbidden' ? <div className="panel-tip">もう一度タップすると切ります</div> : null}
         </div>
       )
@@ -351,10 +370,11 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
             <b>{hints.headline}</b>
           </div>
           {hints.detail.map((l, i) => (
-            <div key={i} className="panel-line">
+            <div key={i} className={`panel-line ${l.startsWith('・') ? 'reason' : ''}`}>
               {l}
             </div>
           ))}
+          {hints.rec.mode !== 'attack' ? guideButton(hints.rec.best.danger.terms) : null}
           <div className="panel-tip">牌をタップすると「切ったらどうなるか」が見られます。◎=おすすめ 数字=有効牌の残り枚数</div>
         </div>
       )
@@ -369,10 +389,11 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
           </button>
         </div>
         {feedback.lines.map((l, i) => (
-          <div key={i} className={`panel-line ${l.startsWith('⚠') ? 'warn' : ''}`}>
+          <div key={i} className={`panel-line ${l.startsWith('⚠') ? 'warn' : ''} ${l.startsWith('・') ? 'reason' : ''}`}>
             {l}
           </div>
         ))}
+        {guideButton(feedback.terms ?? [])}
         {undo.length > 0 && feedback.verdict !== 'best' ? (
           <button className="mini-btn wide" onClick={doUndo}>
             ↩ 待った（打ち直して結果を比べる）
@@ -532,6 +553,19 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
           }}
           onUndo={undo.length > 0 && hintMode !== 'off' ? doUndo : undefined}
         />
+      ) : null}
+      {guide ? (
+        <div className="overlay" onClick={() => setGuide(null)}>
+          <div className="overlay-card guide-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="menu-title">守りの基本：現物・スジ・カベ</div>
+            <SafetyGuide focus={guide} />
+            <div className="overlay-buttons">
+              <button className="btn btn-main" onClick={() => setGuide(null)}>
+                閉じて対局にもどる
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
       {ph.type === 'gameEnd' ? <GameEndOverlay s={s} onAgain={onNewGame} onTitle={onExit} /> : null}
 

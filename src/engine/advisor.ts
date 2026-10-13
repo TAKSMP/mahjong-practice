@@ -40,6 +40,8 @@ export function kindsText(kinds: Kind[], max = 8): string {
 export type HintTag = 'best' | 'good' | 'ok' | 'bad' | 'forbidden'
 
 export interface TileHint {
+  /** 理由に出てくる守りの用語（解説ボタン用） */
+  terms: ('現物' | 'スジ' | 'カベ')[]
   eval: DiscardEval
   tag: HintTag
   /** 1 = おすすめ */
@@ -131,9 +133,11 @@ export function beforeHints(s: GameState, seat = 0): BeforeHints {
     if (e.isRed && !e.forbidden) notes.push('赤ドラです。持っていれば1翻アップ。')
     if (rec.threats.length > 0 && !e.forbidden) {
       const target = e.danger.target !== null ? s.players[e.danger.target].name : ''
-      notes.push(`危険度: ${e.danger.label}${target ? `（対${target}）` : ''} ${e.danger.reasons.join('、')}`)
+      notes.push(`危険度：${e.danger.label}${target ? `（対${target}）` : ''}`)
+      for (const r of e.danger.reasons) notes.push(`・${r}`)
     }
     tiles.set(evalKey(s, e.tile), {
+      terms: rec.threats.length > 0 && !e.forbidden ? e.danger.terms : [],
       eval: e,
       tag,
       rank: ranked.indexOf(e) + 1 || 99,
@@ -169,7 +173,8 @@ export function beforeHints(s: GameState, seat = 0): BeforeHints {
   } else {
     headline = `おすすめ: ${kindLabel(best.kind)} を切って${rec.mode === 'defend' ? '守る' : '回す'}`
     detail.push(rec.reason)
-    detail.push(`${kindLabel(best.kind)}の危険度: ${best.danger.label}（${best.danger.reasons.join('、')}）`)
+    detail.push(`${kindLabel(best.kind)}の危険度：${best.danger.label}`)
+    for (const r of best.danger.reasons) detail.push(`・${r}`)
     if (rec.attackBest !== best) {
       detail.push(`手を進めるだけなら ${kindLabel(rec.attackBest.kind)}（${summarize(s, seat, rec.attackBest)}）。ただし危険度は${rec.attackBest.danger.label}。`)
     }
@@ -193,6 +198,8 @@ export interface Feedback {
   lines: string[]
   chosenKind: Kind
   bestKind: Kind
+  /** 解説に出てくる守りの用語（解説ボタン用） */
+  terms?: ('現物' | 'スジ' | 'カベ')[]
 }
 
 /** 打牌を実行する「前」の状態で呼ぶ */
@@ -212,12 +219,17 @@ export function discardFeedback(s: GameState, seat: number, tile: Tile, riichi: 
   if (sameKind || chosen.tag === 'best') {
     verdict = 'best'
     if (mode === 'attack') lines.push(`${summarize(s, seat, ce)}`)
-    else lines.push(`${kindLabel(ce.kind)}は${ce.danger.label}。${hints.rec.reason}`)
+    else {
+      lines.push(`${kindLabel(ce.kind)}は「${ce.danger.label}」。${hints.rec.reason}`)
+      for (const r of ce.danger.reasons) lines.push(`・${r}`)
+    }
   } else if (mode !== 'attack' && ce.danger.score >= 36 && best.danger.score <= 15) {
     verdict = 'bad'
     const target = ce.danger.target !== null ? s.players[ce.danger.target].name : 'リーチ者'
-    lines.push(`${kindLabel(ce.kind)}は${target}に対して「${ce.danger.label}」な牌です（${ce.danger.reasons.join('、')}）。`)
-    lines.push(`${kindLabel(best.kind)}なら${best.danger.label}（${best.danger.reasons.join('、')}）でした。`)
+    lines.push(`${kindLabel(ce.kind)}は${target}に対して「${ce.danger.label}」な牌です。`)
+    for (const r of ce.danger.reasons) lines.push(`・${r}`)
+    lines.push(`${kindLabel(best.kind)}なら「${best.danger.label}」でした。`)
+    for (const r of best.danger.reasons) lines.push(`・${r}`)
     lines.push(hints.rec.reason)
   } else if (ce.shanten > best.shanten && ce.shanten > hints.rec.attackBest.shanten) {
     verdict = 'bad'
@@ -258,7 +270,8 @@ export function discardFeedback(s: GameState, seat: number, tile: Tile, riichi: 
     lines.push(`リーチ！ ${waitsSummary(s, seat, ce)}`)
   }
   const title = { best: 'ナイス！最善の一打', good: 'いい感じ', soso: 'もう一歩', bad: '要注意の一打' }[verdict]
-  return { verdict, title, lines, chosenKind: ce.kind, bestKind: best.kind }
+  const terms = [...new Set([...(mode !== 'attack' ? ce.danger.terms : []), ...(verdict === 'bad' && mode !== 'attack' ? best.danger.terms : [])])]
+  return { verdict, title, lines, chosenKind: ce.kind, bestKind: best.kind, terms }
 }
 
 // ---------- 鳴きの助言 ----------
