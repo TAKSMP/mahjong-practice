@@ -2064,3 +2064,71 @@ button {
   height: auto;
   min-height: 0;
 }
+
+/* ---------- 結果画面を隠して卓を見る ---------- */
+.result-top {
+  position: sticky;
+  top: -14px;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin: -14px -14px 8px;
+  padding: 14px 14px 6px;
+  background: var(--paper);
+}
+
+.result-top .result-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hide-btn {
+  flex: none;
+  border: none;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #24302a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.result-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 10px 12px max(10px, env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: var(--paper);
+  color: var(--paper-ink);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.result-bar-title {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.result-bar-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.result-bar-buttons .btn {
+  flex: 1;
+  padding: 11px 8px;
+}

@@ -129,7 +129,28 @@ function WinBlock({ s, w }: { s: GameState; w: WinRecord }) {
 
 const VERDICT_JP = { best: '最善', good: '良い', soso: 'もう一歩', bad: '要注意' } as const
 
-export function RoundResultOverlay({ s, feedback, onNext, onUndo }: { s: GameState; feedback: Feedback[]; onNext: () => void; onUndo?: () => void }) {
+/** 結果を隠して、卓（最後の河）を見るためのボタン */
+function HideButton({ onHide }: { onHide: () => void }) {
+  return (
+    <button className="hide-btn" onClick={onHide}>
+      👁 卓を見る
+    </button>
+  )
+}
+
+export function RoundResultOverlay({
+  s,
+  feedback,
+  onNext,
+  onUndo,
+  onHide,
+}: {
+  s: GameState
+  feedback: Feedback[]
+  onNext: () => void
+  onUndo?: () => void
+  onHide: () => void
+}) {
   const res = s.roundResult!
   const counts = { best: 0, good: 0, soso: 0, bad: 0 }
   for (const f of feedback) counts[f.verdict]++
@@ -137,7 +158,10 @@ export function RoundResultOverlay({ s, feedback, onNext, onUndo }: { s: GameSta
   return (
     <div className="overlay">
       <div className="overlay-card">
-        <div className={`result-title result-${res.type}`}>{res.title}</div>
+        <div className="result-top">
+          <div className={`result-title result-${res.type}`}>{res.title}</div>
+          <HideButton onHide={onHide} />
+        </div>
         <div className="dora-line">
           <span>ドラ表示牌</span>
           {res.doraIndicators.map((t) => (
@@ -220,12 +244,15 @@ export function RoundResultOverlay({ s, feedback, onNext, onUndo }: { s: GameSta
   )
 }
 
-export function GameEndOverlay({ s, onAgain, onTitle }: { s: GameState; onAgain: () => void; onTitle: () => void }) {
+export function GameEndOverlay({ s, onAgain, onTitle, onHide }: { s: GameState; onAgain: () => void; onTitle: () => void; onHide: () => void }) {
   const f = s.final!
   return (
     <div className="overlay">
       <div className="overlay-card">
-        <div className="result-title result-win">終局</div>
+        <div className="result-top">
+          <div className="result-title result-win">終局</div>
+          <HideButton onHide={onHide} />
+        </div>
         <div className="final-table">
           {f.order.map((seat, rank) => (
             <div key={seat} className={`final-row ${seat === 0 ? 'final-me' : ''}`}>

@@ -71,6 +71,8 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   const [guide, setGuide] = useState<GuideTerm | null>(null)
   // 卓の代わりに「狙える役」の一覧を出す
   const [aimView, setAimView] = useState(false)
+  // 結果画面を隠して、最後の卓（河）を見る
+  const [hideResult, setHideResult] = useState(false)
   // 結果画面で再開した局は、成績を二重に数えない
   const reportedRound = useRef<number>(initial.phase.type === 'roundEnd' ? initial.roundNo : -1)
   const reportedGame = useRef(false)
@@ -205,6 +207,11 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
     setMenu(false)
     bump()
   }
+
+  // 局面が変わったら（次の局・終局・待った）、結果画面の「隠す」を解除する
+  useEffect(() => {
+    setHideResult(false)
+  }, [ph.type, s.roundNo])
 
   // 局が変わったら「待った」とこの局の評価をリセット
   const roundKey = s.roundNo
@@ -462,11 +469,20 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
       const p = s.players[ph.from]
       return { seat: ph.from, index: p.discards.length - 1 }
     }
+    // ロンで終わった局は、和了牌（放銃した牌）に印をつける
+    const ron = ph.type === 'roundEnd' ? s.roundResult?.wins.find((w) => w.from !== null) : undefined
+    if (ron && ron.from !== null) return { seat: ron.from, index: s.players[ron.from].discards.length - 1 }
     return null
   })()
+  const resultShown = (ph.type === 'roundEnd' || ph.type === 'gameEnd') && !hideResult
+  const resultHidden = (ph.type === 'roundEnd' || ph.type === 'gameEnd') && hideResult
+  const hideResultNow = () => {
+    setAimView(false)
+    setHideResult(true)
+  }
 
   return (
-    <div className={`game ${aimView && hintMode !== 'off' ? 'aim-on' : ''}`}>
+    <div className={`game ${aimView && hintMode !== 'off' && ph.type !== 'roundEnd' && ph.type !== 'gameEnd' ? 'aim-on' : ''}`}>
       <div className="topbar">
         <button className="icon-btn" onClick={() => setMenu(true)} aria-label="メニュー">
           ☰
@@ -491,10 +507,10 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
         ) : null}
       </div>
 
-      {aimView && hintMode !== 'off' ? (
+      {aimView && hintMode !== 'off' && ph.type !== 'roundEnd' && ph.type !== 'gameEnd' ? (
         <AimPanel s={s} onClose={() => setAimView(false)} />
       ) : (
-        <Table s={s} bubble={bubble} lastDiscard={lastDiscard} onAim={hintMode !== 'off' ? () => setAimView(true) : undefined} />
+        <Table s={s} bubble={bubble} lastDiscard={lastDiscard} onAim={hintMode !== 'off' && ph.type !== 'roundEnd' && ph.type !== 'gameEnd' ? () => setAimView(true) : undefined} />
       )}
 
       <div className="bottom">
@@ -550,7 +566,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
         </div>
       </div>
 
-      {ph.type === 'roundEnd' ? (
+      {resultShown && ph.type === 'roundEnd' ? (
         <RoundResultOverlay
           s={s}
           feedback={roundFeedback}
@@ -559,7 +575,29 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
             bump()
           }}
           onUndo={undo.length > 0 && hintMode !== 'off' ? doUndo : undefined}
+          onHide={hideResultNow}
         />
+      ) : null}
+      {resultHidden ? (
+        <div className="result-bar">
+          <div className="result-bar-title">{ph.type === 'roundEnd' ? s.roundResult?.title : '終局'}</div>
+          <div className="result-bar-buttons">
+            <button className="btn btn-sub" onClick={() => setHideResult(false)}>
+              📋 結果を見る
+            </button>
+            {ph.type === 'roundEnd' ? (
+              <button
+                className="btn btn-main"
+                onClick={() => {
+                  nextRound(gameRef.current)
+                  bump()
+                }}
+              >
+                {s.next?.over ? '最終結果へ' : '次の局へ'}
+              </button>
+            ) : null}
+          </div>
+        </div>
       ) : null}
       {guide ? (
         <div className="overlay" onClick={() => setGuide(null)}>
@@ -574,7 +612,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
           </div>
         </div>
       ) : null}
-      {ph.type === 'gameEnd' ? <GameEndOverlay s={s} onAgain={onNewGame} onTitle={onExit} /> : null}
+      {resultShown && ph.type === 'gameEnd' ? <GameEndOverlay s={s} onAgain={onNewGame} onTitle={onExit} onHide={hideResultNow} /> : null}
 
       {menu ? (
         <div className="overlay" onClick={() => setMenu(false)}>
