@@ -47,7 +47,8 @@ export function Table({
 }: {
   s: GameState
   bubble: GameEvent | null
-  lastDiscard: { seat: number; index: number } | null
+  /** 河でいちばん新しい捨て牌。strong = 鳴き・ロンの確認が出ていて、強く目立たせる */
+  lastDiscard: { seat: number; index: number; strong: boolean } | null
   /** 「狙える役」の一覧に切り替える（なければボタンを出さない） */
   onAim?: () => void
 }) {
@@ -109,7 +110,7 @@ export function Table({
                         red={redSet.has(d.tile)}
                         sideways={d.riichi || idx === p.riichiIndex}
                         dim={d.calledBy !== null}
-                        className={`${isLast ? 'tile-last' : ''} ${d.tsumogiri ? 'tile-tsumogiri' : ''}`}
+                        className={`${isLast ? (lastDiscard.strong ? 'tile-last tile-last-strong' : 'tile-last') : ''} ${d.tsumogiri ? 'tile-tsumogiri' : ''}`}
                       />
                     )
                   })}

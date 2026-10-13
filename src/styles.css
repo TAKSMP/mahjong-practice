@@ -91,10 +91,52 @@ button {
   opacity: 0.32;
 }
 
-.tile-last .tile-body {
+/* 河でいちばん新しい捨て牌：枠で囲む */
+.tile-last {
+  z-index: 3;
+}
+
+.tile-last::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid #ffd54a;
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+/* 鳴き・ロンの確認が出ているとき：太い枠で光らせて、対象の牌をはっきりさせる */
+.tile-last-strong {
+  z-index: 4;
+}
+
+.tile-last-strong::after {
+  inset: -5px;
+  border: 4px solid #ffe14a;
+  border-radius: 7px;
   box-shadow:
-    0 0 0 2px #ffd54a,
-    0 calc(var(--tw) * 0.07) 0 #cfae73;
+    0 0 0 2px rgba(0, 0, 0, 0.55),
+    0 0 14px 4px rgba(255, 225, 74, 0.95);
+  animation: call-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes call-pulse {
+  from {
+    box-shadow:
+      0 0 0 2px rgba(0, 0, 0, 0.55),
+      0 0 6px 1px rgba(255, 225, 74, 0.6);
+  }
+  to {
+    box-shadow:
+      0 0 0 2px rgba(0, 0, 0, 0.55),
+      0 0 18px 7px rgba(255, 225, 74, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-last-strong::after {
+    animation: none;
+  }
 }
 
 .tile-tsumogiri .tile-body {
@@ -2131,4 +2173,21 @@ button {
 .result-bar-buttons .btn {
   flex: 1;
   padding: 11px 8px;
+}
+
+.call-tile {
+  display: inline-flex;
+  vertical-align: middle;
+  margin: 0 4px 0 6px;
+}
+
+.call-tile .tile {
+  --tw: 22px;
+}
+
+.call-where {
+  flex-basis: 100%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a6500;
 }

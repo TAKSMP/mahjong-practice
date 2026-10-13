@@ -208,6 +208,11 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
     bump()
   }
 
+  // 鳴き・ロンの確認が出たら、対象の牌（河）が見えるよう、必ず卓の表示に戻す
+  useEffect(() => {
+    if (myResponse) setAimView(false)
+  }, [myResponse])
+
   // 局面が変わったら（次の局・終局・待った）、結果画面の「隠す」を解除する
   useEffect(() => {
     setHideResult(false)
@@ -329,8 +334,17 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
     panel = (
       <div className="panel panel-call">
         <div className="panel-head">
-          {ph.type === 'response' ? `${s.players[ph.from].name}の ${kindLabel(kindOf(ph.tile))}` : ''}
+          {ph.type === 'response' ? (
+            <>
+              {s.players[ph.from].name}の
+              <span className="call-tile">
+                <TileView kind={kindOf(ph.tile)} red={isRedTile(ph.tile)} className="tile-xs" />
+              </span>
+              <b>{kindLabel(kindOf(ph.tile))}</b>
+            </>
+          ) : null}
           {callOpts.ron ? ' — ロンできます！' : ' を鳴けます'}
+          <span className="call-where">（河の枠で囲まれた牌）</span>
         </div>
         {advice ? advice.lines.map((l, i) => <div key={i} className="panel-line">{l}</div>) : null}
       </div>
@@ -464,15 +478,32 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
   }
 
   const dora = doraIndicators(s)
+  // 河でいちばん新しい捨て牌（誰が切ったかに関わらず）。鳴き・ロンの確認が出ているときは、強く目立たせる
   const lastDiscard = (() => {
+    // ロンで終わった局は、和了牌（放銃した牌）
+    const ron = ph.type === 'roundEnd' ? s.roundResult?.wins.find((w) => w.from !== null) : undefined
+    if (ron && ron.from !== null) return { seat: ron.from, index: s.players[ron.from].discards.length - 1, strong: false }
+    if (ph.type === 'roundEnd' || ph.type === 'gameEnd') return null
+    const strong = myResponse
     if (ph.type === 'response') {
       const p = s.players[ph.from]
-      return { seat: ph.from, index: p.discards.length - 1 }
+      return { seat: ph.from, index: p.discards.length - 1, strong }
     }
-    // ロンで終わった局は、和了牌（放銃した牌）に印をつける
-    const ron = ph.type === 'roundEnd' ? s.roundResult?.wins.find((w) => w.from !== null) : undefined
-    if (ron && ron.from !== null) return { seat: ron.from, index: s.players[ron.from].discards.length - 1 }
-    return null
+    let bestSeat = -1
+    let bestIndex = -1
+    let bestSeq = -1
+    for (let seat = 0; seat < s.players.length; seat++) {
+      const ds = s.players[seat].discards
+      for (let index = 0; index < ds.length; index++) {
+        const q = ds[index].seq ?? -1
+        if (q > bestSeq) {
+          bestSeq = q
+          bestSeat = seat
+          bestIndex = index
+        }
+      }
+    }
+    return bestSeq >= 0 ? { seat: bestSeat, index: bestIndex, strong: false } : null
   })()
   const resultShown = (ph.type === 'roundEnd' || ph.type === 'gameEnd') && !hideResult
   const resultHidden = (ph.type === 'roundEnd' || ph.type === 'gameEnd') && hideResult
