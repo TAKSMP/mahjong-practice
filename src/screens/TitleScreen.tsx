@@ -14,13 +14,16 @@ interface Props {
   onResume: () => void
   onSettings: () => void
   onHelp: () => void
+  onQuiz: () => void
+  quizMastered: number
+  quizTotal: number
   onResetStats: () => void
 }
 
 const HINT_JP = { before: '打つ前のヒント', after: '打った直後の指摘', off: 'なし' }
 const LEVEL_JP = { weak: 'よわい', normal: 'ふつう', strong: 'つよい' }
 
-export function TitleScreen({ canResume, stats, rules, settings, onStart, onResume, onSettings, onHelp, onResetStats }: Props) {
+export function TitleScreen({ canResume, stats, rules, settings, onStart, onResume, onSettings, onHelp, onQuiz, quizMastered, quizTotal, onResetStats }: Props) {
   const [confirmReset, setConfirmReset] = useState(false)
   const v = stats.verdicts
   const totalV = v.best + v.good + v.soso + v.bad
@@ -44,6 +47,12 @@ export function TitleScreen({ canResume, stats, rules, settings, onStart, onResu
         ) : null}
         <button className={`btn ${canResume ? 'btn-sub' : 'btn-main'} big`} onClick={onStart}>
           {canResume ? '新しく対局する' : '▶ 対局をはじめる'}
+        </button>
+        <button className="btn btn-quiz" onClick={onQuiz}>
+          🧠 定石クイズ100選
+          <small>
+            型で覚えて、実戦で使える力に（覚えた {quizMastered} / {quizTotal}）
+          </small>
         </button>
         <button className="btn btn-sub" onClick={onSettings}>
           ⚙ ルール・サポート設定

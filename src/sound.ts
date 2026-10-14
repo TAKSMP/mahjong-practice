@@ -28,6 +28,8 @@ export type SoundName =
   | 'rank2'
   | 'rank3'
   | 'rank4'
+  | 'correct' // クイズ：正解
+  | 'wrong' // クイズ：不正解
 
 export const SOUND_NAMES: SoundName[] = [
   'discard',
@@ -55,6 +57,8 @@ export const SOUND_NAMES: SoundName[] = [
   'rank2',
   'rank3',
   'rank4',
+  'correct',
+  'wrong',
 ]
 
 export interface PlayOpts {
@@ -294,6 +298,16 @@ export const RECIPES: Record<SoundName, Recipe> = {
   undo: (r, { vel }) => {
     r.osc({ f: 700, f2: 300, dur: 0.16, vol: 0.15 * vel })
     r.noise({ dur: 0.1, vol: 0.05 * vel, filter: { type: 'bandpass', f: 1200, f2: 400, q: 1 } })
+  },
+  // クイズ：正解の「ピンポン」
+  correct: (r, { vel }) => {
+    bell(r, 0, 1175, 0.45, 0.2 * vel)
+    bell(r, 0.1, 1568, 0.6, 0.2 * vel)
+  },
+  // クイズ：不正解の「ブッ」
+  wrong: (r, { vel }) => {
+    r.osc({ type: 'triangle', f: 330, f2: 262, dur: 0.2, vol: 0.2 * vel, filter: { type: 'lowpass', f: 900 } })
+    r.osc({ t: 0.13, type: 'triangle', f: 247, f2: 196, dur: 0.3, vol: 0.2 * vel, filter: { type: 'lowpass', f: 800 } })
   },
   rank1: (r, { vel }) => {
     notes(

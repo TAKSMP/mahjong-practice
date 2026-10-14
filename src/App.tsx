@@ -4,7 +4,10 @@ import { createGame, ranking, type GameState } from './engine/game'
 import { configureSound } from './sound'
 import type { Rules } from './engine/rules'
 import { GameScreen } from './screens/GameScreen'
+import { EMPTY_QUIZ, loadQuizProgress, saveQuizProgress, summarize, type QuizProgress } from './quiz/progress'
+import { QUESTIONS } from './quiz'
 import { HelpScreen } from './screens/HelpScreen'
+import { QuizScreen } from './screens/QuizScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { TitleScreen } from './screens/TitleScreen'
 import {
@@ -21,7 +24,7 @@ import {
   type PlayStats,
 } from './settings'
 
-type Screen = 'title' | 'game' | 'settings' | 'help'
+type Screen = 'title' | 'game' | 'settings' | 'help' | 'quiz'
 
 function isValidSave(g: GameState | null): g is GameState {
   return !!g && g.version === 1 && Array.isArray(g.players) && g.players.length === 4 && g.phase?.type !== 'gameEnd'
@@ -33,6 +36,7 @@ export function App() {
   const [settings, setSettings] = useState<AppSettings>(loadSettings)
   const [rules, setRules] = useState<Rules>(loadRules)
   const [stats, setStats] = useState<PlayStats>(loadStats)
+  const [quiz, setQuiz] = useState<QuizProgress>(loadQuizProgress)
   const [game, setGame] = useState<GameState | null>(null)
   const [gameKey, setGameKey] = useState(0)
   const [saved, setSaved] = useState<GameState | null>(() => {
@@ -44,6 +48,7 @@ export function App() {
   useEffect(() => configureSound(settings.se, settings.seVolume / 100), [settings.se, settings.seVolume])
   useEffect(() => saveRules(rules), [rules])
   useEffect(() => saveStats(stats), [stats])
+  useEffect(() => saveQuizProgress(quiz), [quiz])
 
   const startNew = () => {
     const g = createGame(rules)
@@ -121,6 +126,18 @@ export function App() {
       </div>
     )
   }
+  if (screen === 'quiz') {
+    return (
+      <div className="app">
+        <QuizScreen
+          progress={quiz}
+          onProgress={setQuiz}
+          onResetProgress={() => setQuiz(structuredClone(EMPTY_QUIZ))}
+          onBack={() => setScreen('title')}
+        />
+      </div>
+    )
+  }
   if (screen === 'settings') {
     return (
       <div className="app">
@@ -139,6 +156,9 @@ export function App() {
         onResume={resume}
         onSettings={() => setScreen('settings')}
         onHelp={() => openHelp('title')}
+        onQuiz={() => setScreen('quiz')}
+        quizMastered={summarize(quiz, QUESTIONS.map((q) => q.id)).mastered}
+        quizTotal={QUESTIONS.length}
         onResetStats={() => setStats(structuredClone(EMPTY_STATS))}
       />
     </div>
