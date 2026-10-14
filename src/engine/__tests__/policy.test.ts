@@ -53,7 +53,7 @@ describe('自分の方針と助言', () => {
     expect(defend.rec.best.kind).toBe(M6)
     expect(defend.rec.mode).toBe('defend')
     expect(defend.rec.best.danger.label).toBe('現物')
-    expect(defend.headline).toContain('6萬')
+    expect(defend.headline).toContain('ローワン')
     expect(defend.headline).toContain('守る')
   })
 

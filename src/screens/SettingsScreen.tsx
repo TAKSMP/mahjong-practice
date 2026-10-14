@@ -99,7 +99,7 @@ export function SettingsScreen({ rules, settings, onRules, onSettings, onBack }:
           onChange={(v) => st('policy', v)}
         />
         <Toggle label="鳴き・ロンの助言" desc="ポン・チーできるときに、鳴くべきかどうかの理由を表示" value={settings.callAdvice} onChange={(v) => st('callAdvice', v)} />
-        <Toggle label="牌の名前を表示" desc="手牌の下に「5萬」「東」などの名前を出します" value={settings.showNames} onChange={(v) => st('showNames', v)} />
+        <Toggle label="牌の名前を表示" desc="手牌の下に「ウーワン」「トン」などの名前（カタカナの読み方）を出します。クイズの手牌の下にも出ます" value={settings.showNames} onChange={(v) => st('showNames', v)} />
         <Toggle label="鳴きの確認をしない" desc="ロン以外の鳴きは自動でスルー（門前の練習に）" value={settings.autoPassCalls} onChange={(v) => st('autoPassCalls', v)} />
         <Choice
           label="CPUの強さ"
@@ -205,7 +205,7 @@ export function SettingsScreen({ rules, settings, onRules, onSettings, onBack }:
           options={[
             { v: 0, label: 'なし' },
             { v: 3, label: '3枚' },
-            { v: 4, label: '4枚（5筒×2）' },
+            { v: 4, label: '4枚（ウーピン×2）' },
           ]}
           onChange={(v) => set('aka', v)}
         />

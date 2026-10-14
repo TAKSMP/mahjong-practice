@@ -29,7 +29,7 @@ import {
 import { doraFromIndicator, kindLabel, kindOf, toCounts, type Tile } from '../engine/tiles'
 import { waitingKinds } from '../engine/shanten'
 import { MeldView, Table, isRedTile, setRedTiles } from '../components/Table'
-import { TileView } from '../components/Tile'
+import { TileName, TileView } from '../components/Tile'
 import { GameEndOverlay, RoundResultOverlay } from '../components/ResultOverlay'
 import { AimPanel } from '../components/AimPanel'
 import { HandsPanel } from '../components/HandsPanel'
@@ -337,7 +337,7 @@ export function GameScreen({ initial, settings, onSettingsChange, onExit, onNewG
         )}
         <TileView kind={kindOf(t)} red={isRedTile(t)} />
         <div className={`danger-bar ${h && threatsExist ? `danger-${dangerClass(h.eval.danger.score)}` : ''}`} />
-        {settings.showNames ? <div className="hand-name">{kindLabel(kindOf(t))}</div> : null}
+        {settings.showNames ? <TileName kind={kindOf(t)} className="hand-name" /> : null}
       </div>
     )
   }

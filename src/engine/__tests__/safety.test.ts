@@ -37,12 +37,12 @@ describe('危険度の理由', () => {
     discard(s, 1, 3) // 4萬
     const one = tileDanger(s, 0, 0)
     expect(one.terms).toEqual(['スジ'])
-    expect(one.reasons[0]).toContain('スジ：4萬が捨てられている')
-    expect(one.reasons[0]).toContain('2-3萬の形で1・4萬待ち')
+    expect(one.reasons[0]).toContain('スジ：スーワンが捨てられている（1-4-7（イースーチー）のスジ）')
+    expect(one.reasons[0]).toContain('リャンサンワンの形でイーワン・スーワン待ち')
     expect(one.score).toBeLessThanOrEqual(15)
     const seven = tileDanger(s, 0, 6)
     expect(seven.terms).toEqual(['スジ'])
-    expect(seven.reasons[0]).toContain('5-6萬の形で4・7萬待ち')
+    expect(seven.reasons[0]).toContain('ウーローワンの形でスーワン・チーワン待ち')
   })
 
   it('片スジは「まだ当たる」と説明される', () => {
@@ -59,7 +59,7 @@ describe('危険度の理由', () => {
     for (let i = 0; i < 4; i++) discard(s, 2, 2, i) // 3萬×4（対面の河）
     const one = tileDanger(s, 0, 0)
     expect(one.terms).toEqual(['カベ'])
-    expect(one.reasons[0]).toContain('カベ：3萬が4枚とも見えている')
+    expect(one.reasons[0]).toContain('カベ：サンワンが4枚とも見えている')
     expect(one.score).toBeLessThanOrEqual(15)
     // 4萬は片側だけ消える
     const four = tileDanger(s, 0, 3)

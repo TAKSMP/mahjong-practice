@@ -15,12 +15,15 @@ import {
 import { isMastered, markOf, recordAnswer, summarize, weakIds, type Mark, type QuizProgress } from '../quiz/progress'
 import type { CategoryId, Pattern } from '../quiz/types'
 import { GRADE_OK, type Grade } from '../quiz/util'
+import { rd, rdTiles } from '../reading'
 import { playSound } from '../sound'
 import { QuestionView } from './quiz/QuestionView'
-import { TileRow } from './quiz/TileRow'
+import { NamesContext, TileRow } from './quiz/TileRow'
 
 interface Props {
   progress: QuizProgress
+  /** 牌の下に読み方を出す（設定の「牌の名前を表示」） */
+  showNames: boolean
   onProgress: (updater: (p: QuizProgress) => QuizProgress) => void
   onResetProgress: () => void
   onBack: () => void
@@ -81,20 +84,20 @@ function PatternLesson({ p }: { p: Pattern }) {
       <div className="q-lesson-id">
         {CATEGORY_BY_ID[p.cat].icon} {p.id}
       </div>
-      <h3>{p.name}</h3>
-      <div className="q-rule">🔑 {p.rule}</div>
-      <p>{p.detail}</p>
+      <h3>{rd(p.name)}</h3>
+      <div className="q-rule">🔑 {rd(p.rule)}</div>
+      <p>{rd(p.detail)}</p>
       {p.samples?.map((s, i) => (
         <div key={i} className="q-sample">
           {s.tiles ? <TileRow tiles={s.tiles} size="s" /> : null}
-          <div className="q-sample-note">{s.note}</div>
+          <div className="q-sample-note">{rd(s.note)}</div>
         </div>
       ))}
     </div>
   )
 }
 
-export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Props) {
+export function QuizScreen({ progress, showNames, onProgress, onResetProgress, onBack }: Props) {
   const [stack, setStack] = useState<View[]>([{ name: 'home' }])
   const [session, setSession] = useState<Session | null>(null)
   const [sheet, setSheet] = useState<string | null>(null)
@@ -183,7 +186,7 @@ export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Pr
               <div className="q-cat-icon">{c.icon}</div>
               <div className="q-cat-body">
                 <div className="q-cat-name">{c.name}</div>
-                <div className="q-cat-blurb">{c.blurb}</div>
+                <div className="q-cat-blurb">{rd(c.blurb)}</div>
                 <div className="q-cat-prog">
                   <Bar value={s.mastered} total={s.total} />
                   <span>
@@ -235,7 +238,7 @@ export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Pr
           <div className="q-hero-title">
             {c.icon} {c.name}
           </div>
-          <div className="q-hero-sub">{c.blurb}</div>
+          <div className="q-hero-sub">{rd(c.blurb)}</div>
         </div>
         <button className="btn btn-main" onClick={() => start(c.name, ids)}>
           ▶ この分野を順番に解く（{ids.length}問）
@@ -248,9 +251,9 @@ export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Pr
             <button key={p.id} className="q-pat" onClick={() => push({ name: 'pattern', id: p.id })}>
               <div className="q-pat-head">
                 <span className="q-pat-id">{p.id}</span>
-                <span className="q-pat-name">{p.name}</span>
+                <span className="q-pat-name">{rdTiles(p.name)}</span>
               </div>
-              <div className="q-pat-rule">{p.rule}</div>
+              <div className="q-pat-rule">{rd(p.rule)}</div>
               <div className="q-pat-foot">
                 <Dots ids={pids} progress={progress} />
                 <span>
@@ -373,7 +376,7 @@ export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Pr
                   <div key={id} className="q-res-row ng">
                     <span className="q-res-mark">❌</span>
                     <span className="q-res-name">
-                      {q.pattern}｜{PATTERN_BY_ID[q.pattern].name}
+                      {q.pattern}｜{rdTiles(PATTERN_BY_ID[q.pattern].name)}
                     </span>
                   </div>
                 )
@@ -385,10 +388,10 @@ export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Pr
               <button key={pid} className="q-pat" onClick={() => push({ name: 'pattern', id: pid })}>
                 <div className="q-pat-head">
                   <span className="q-pat-id">{pid}</span>
-                  <span className="q-pat-name">{PATTERN_BY_ID[pid].name}</span>
+                  <span className="q-pat-name">{rdTiles(PATTERN_BY_ID[pid].name)}</span>
                   <span className="q-pat-miss">{missCount[pid]}問ミス</span>
                 </div>
-                <div className="q-pat-rule">{PATTERN_BY_ID[pid].rule}</div>
+                <div className="q-pat-rule">{rd(PATTERN_BY_ID[pid].rule)}</div>
               </button>
             ))}
           </>
@@ -422,6 +425,7 @@ export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Pr
             : '結果'
 
   return (
+    <NamesContext.Provider value={showNames}>
     <div className="page quiz" ref={topRef}>
       <div className="page-head">
         <button className="icon-btn" onClick={back} aria-label="もどる">
@@ -446,6 +450,7 @@ export function QuizScreen({ progress, onProgress, onResetProgress, onBack }: Pr
         </div>
       ) : null}
     </div>
+    </NamesContext.Provider>
   )
 }
 

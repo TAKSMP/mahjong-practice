@@ -1,5 +1,6 @@
 // 局の結果・終局の結果
 
+import { rdTiles } from '../reading'
 import { useState } from 'react'
 import type { Feedback } from '../engine/advisor'
 import { type GameState, type WinRecord, seatWindIndex, WIND_JP } from '../engine/game'
@@ -72,7 +73,7 @@ function WinBlock({ s, w }: { s: GameState; w: WinRecord }) {
                 <span className="yaku-name">{y.name}</span>
                 <span className="yaku-han">{y.yakuman ? (y.yakuman > 1 ? 'ダブル役満' : '役満') : `${y.han}翻`}</span>
               </div>
-              {openYaku === key && info ? <div className="yaku-desc">{info.reading}：{info.desc}</div> : null}
+              {openYaku === key && info ? <div className="yaku-desc">{info.reading}：{rdTiles(info.desc)}</div> : null}
             </div>
           )
         })}

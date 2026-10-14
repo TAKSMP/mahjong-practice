@@ -1,12 +1,13 @@
 // 1問ぶんの出題・解答・解説
 
-import { useMemo, useState } from 'react'
-import { TileView } from '../../components/Tile'
+import { useContext, useMemo, useState } from 'react'
+import { TileName, TileView } from '../../components/Tile'
 import { kindLabel, parseKinds, type Kind } from '../../engine/tiles'
+import { rd, rdTiles } from '../../reading'
 import { playSound } from '../../sound'
 import { CATEGORY_BY_ID, PATTERN_BY_ID } from '../../quiz/patterns'
 import type { QuestionData, Situation } from '../../quiz/types'
-import { GRADE_OK, WIND_JP, arrangeHand, gradeChoice, gradePick, gradeWait, parseTiles, type Grade } from '../../quiz/util'
+import { GRADE_OK, WIND_BA, WIND_CHA, WIND_JP, arrangeHand, gradeChoice, gradePick, gradeWait, parseTiles, type Grade } from '../../quiz/util'
 import {
   DangerExplain,
   DiscardExplain,
@@ -17,7 +18,7 @@ import {
   ScoreExplain,
   WaitExplain,
 } from './Explain'
-import { HandRow, TileRow, type HandMark } from './TileRow'
+import { HandRow, NamesContext, TileRow, type HandMark } from './TileRow'
 
 interface Props {
   q: QuestionData
@@ -36,9 +37,13 @@ function SituationBar({ sit }: { sit: Situation }) {
   return (
     <div className="q-sit">
       <div className="q-sit-chips">
-        {sit.rw !== undefined ? <span className="q-pill">{WIND_JP[sit.rw]}場</span> : null}
-        {sit.sw !== undefined ? <span className="q-pill">{WIND_JP[sit.sw]}家{sit.sw === 0 ? '（親）' : ''}</span> : null}
-        {sit.turn !== undefined ? <span className="q-pill">{sit.turn}巡目</span> : null}
+        {sit.rw !== undefined ? <span className="q-pill">{WIND_JP[sit.rw]}場（{WIND_BA[sit.rw]}）</span> : null}
+        {sit.sw !== undefined ? (
+          <span className="q-pill">
+            {WIND_JP[sit.sw]}家（{WIND_CHA[sit.sw]}）{sit.sw === 0 ? '・親（オヤ）' : ''}
+          </span>
+        ) : null}
+        {sit.turn !== undefined ? <span className="q-pill">{sit.turn}巡目（ジュンメ）</span> : null}
         {sit.dora ? (
           <span className="q-pill dora">
             ドラ表示牌
@@ -46,7 +51,7 @@ function SituationBar({ sit }: { sit: Situation }) {
           </span>
         ) : null}
       </div>
-      {sit.note ? <div className="q-sit-note">{sit.note}</div> : null}
+      {sit.note ? <div className="q-sit-note">{rd(sit.note)}</div> : null}
     </div>
   )
 }
@@ -64,6 +69,7 @@ function sitOf(q: QuestionData): Situation {
 export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPattern }: Props) {
   const pattern = PATTERN_BY_ID[q.pattern]
   const cat = CATEGORY_BY_ID[pattern.cat]
+  const names = useContext(NamesContext)
   const [handSel, setHandSel] = useState<number | null>(null)
   const [waitSel, setWaitSel] = useState<Kind[]>([])
   const [choiceSel, setChoiceSel] = useState<number | null>(null)
@@ -118,8 +124,8 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
     yourAnswer = waitSel.length ? [...waitSel].sort((a, b) => a - b).map(kindLabel).join('・') : ''
     rightAnswer = parseKinds(q.answers).map(kindLabel).join('・')
   } else {
-    yourAnswer = choiceSel !== null ? q.options[choiceSel] : ''
-    rightAnswer = q.options[q.answer]
+    yourAnswer = choiceSel !== null ? rd(q.options[choiceSel]) : ''
+    rightAnswer = rd(q.options[q.answer])
   }
 
   const showHandBoard = q.type === 'score'
@@ -139,15 +145,15 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
   return (
     <div className="q-wrap">
       <div className="q-tag">
-        <span>{cat.icon}</span> {pattern.id}｜{pattern.name}
+        <span>{cat.icon}</span> {pattern.id}｜{rdTiles(pattern.name)}
       </div>
       <SituationBar sit={sitOf(q)} />
-      <div className="q-prompt">{q.prompt}</div>
+      <div className="q-prompt">{rd(q.prompt)}</div>
 
       {q.show?.map((r, i) => (
         <div key={i} className="q-show">
-          <div className="q-row-label">{r.label}</div>
-          <TileRow tiles={r.tiles} size={parseTiles(r.tiles).length >= 10 ? 'm' : 's'} arrange={r.label.includes('手牌')} />
+          <div className="q-row-label">{rdTiles(r.label)}</div>
+          <TileRow tiles={r.tiles} size={parseTiles(r.tiles).length >= 10 ? 'm' : 's'} arrange={r.label.includes('手牌')} named={r.label.includes('手牌')} />
         </div>
       ))}
 
@@ -198,7 +204,7 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
         <>
           <div className="q-show">
             <div className="q-row-label">あなたの手牌（テンパイ）</div>
-            <TileRow tiles={q.hand} size="m" arrange />
+            <TileRow tiles={q.hand} size="m" arrange named />
           </div>
           <div className="q-show">
             <div className="q-row-label">待ちだと思う牌をすべて選ぶ{done ? '' : '（タップで選択・解除）'}</div>
@@ -217,6 +223,7 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
                     <span className="q-t-m">
                       <TileView kind={k} />
                     </span>
+                    {names ? <TileName kind={k} className="q-name dark" /> : null}
                     <small>{on ? '✓' : ' '}</small>
                   </button>
                 )
@@ -237,10 +244,11 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
                 ))}
               </div>
             ) : null}
-            <div className="q-tiles q-t-m q-hand with-draw">
+            <div className={`q-tiles q-t-m q-hand with-draw ${names ? 'with-names' : ''}`}>
               {winTiles.map((t, i) => (
                 <div key={i} className="q-hand-tile">
                   <TileView kind={t.kind} red={t.red} />
+                  {names ? <TileName kind={t.kind} className="q-name" /> : null}
                 </div>
               ))}
             </div>
@@ -265,7 +273,7 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
                 }}
               >
                 <b>{String.fromCharCode(65 + i)}</b>
-                <span>{o}</span>
+                <span>{rd(o)}</span>
               </button>
             )
           })}
@@ -302,8 +310,8 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
 
           <div className="q-why">
             <h4>解説</h4>
-            <p>{q.why}</p>
-            {q.note ? <p className="q-note">💡 {q.note}</p> : null}
+            <p>{rd(q.why)}</p>
+            {q.note ? <p className="q-note">💡 {rd(q.note)}</p> : null}
           </div>
 
           {q.type === 'discard' ? <DiscardExplain q={q} pickKind={pickKind} /> : null}
@@ -321,7 +329,7 @@ export function QuestionView({ q, num, total, last, onAnswer, onNext, onOpenPatt
 
           <div className="q-memo">
             <div className="q-memo-head">🔑 覚える型</div>
-            <div className="q-memo-rule">{q.memo ?? pattern.rule}</div>
+            <div className="q-memo-rule">{rd(q.memo ?? pattern.rule)}</div>
             <button className="link-btn" onClick={() => onOpenPattern(pattern.id)}>
               この型の解説を読む ›
             </button>

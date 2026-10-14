@@ -3,24 +3,25 @@
 import { useState } from 'react'
 import { parseKinds } from '../engine/tiles'
 import { YAKU_LIST } from '../engine/yakuData'
-import { TileView } from '../components/Tile'
+import { TileName, TileView } from '../components/Tile'
+import { rdTiles } from '../reading'
 import { SafetyGuide } from '../components/SafetyGuide'
 
 const TERMS: { term: string; desc: string }[] = [
   { term: '和了（あがり）', desc: '4つの面子（3枚組）と1つの雀頭（2枚組）をそろえ、役が1つ以上あると和了れます。自分で引けば「ツモ」、他人の捨て牌なら「ロン」。' },
-  { term: '面子（メンツ）', desc: '3枚組のこと。順子（同じ種類の連続した数 例:345萬）と刻子（同じ牌3枚 例:東東東）があります。' },
+  { term: '面子（メンツ）', desc: '3枚組のこと。順子（シュンツ：同じ種類の連続した数。例：ワンズの345＝サンスーウー）と刻子（コーツ：同じ牌3枚。例：東東東＝トントントン）があります。' },
   { term: '雀頭（ジャントウ）', desc: '同じ牌2枚の組（対子）。和了の形には1つ必要です。' },
   { term: 'テンパイ', desc: 'あと1枚で和了れる状態。待っている牌を「待ち」と言います。' },
   { term: 'シャンテン', desc: 'テンパイまであと何枚必要か。1シャンテン＝あと1枚でテンパイ。このアプリのヒントはシャンテン数を減らす牌を基準にしています。' },
   { term: '受け入れ（有効牌）', desc: '引くとシャンテン数が進む牌のこと。その残り枚数が多いほど手が早く進みます。ヒントの数字はこの枚数です。' },
   { term: '役（ヤク）', desc: '和了るために必要な条件。リーチ・タンヤオ・役牌などがあります。役がないと和了れません（ドラは役ではありません）。' },
-  { term: 'ドラ', desc: 'ドラ表示牌の「次」の牌。持っていると1枚につき1翻アップ。例：表示牌が3萬ならドラは4萬、北なら東、中なら白。' },
+  { term: 'ドラ', desc: 'ドラ表示牌の「次」の牌。持っていると1枚につき1翻アップ。例：表示牌がサンワンならドラはスーワン、北（ペー）なら東（トン）、中（チュン）なら白（ハク）。' },
   { term: '翻（ハン）と符（フ）', desc: '点数を決める2つの数。翻は役やドラの合計、符は手の形（刻子・待ち方など）で決まります。5翻以上は符に関係なく満貫などになります。' },
   { term: '門前（メンゼン）', desc: 'ポン・チー・明槓をしていない状態。リーチは門前でないとできません。' },
   { term: 'ポン・チー・カン', desc: 'ポン＝他人の捨て牌で刻子を作る。チー＝左隣（上家）の捨て牌で順子を作る。カン＝同じ牌4枚で槓子を作る（嶺上牌を1枚引く）。' },
   { term: 'フリテン', desc: '自分の待ちの牌を自分で捨てていると、ロンできません（ツモなら和了れる）。見逃した直後やリーチ後の見逃しもフリテンになります。' },
   { term: '現物（げんぶつ）', desc: 'リーチした人がすでに捨てている牌。その人には絶対にロンされない、いちばん安全な牌です。（くわしくは「守り方」タブ）' },
-  { term: 'スジ', desc: '1-4-7、2-5-8、3-6-9 の3つおきの関係。相手が4を捨てていると、1と7は「両面待ち」には当たりません。（図つきの解説は「守り方」タブ）' },
+  { term: 'スジ（筋）', desc: '1-4-7（イースーチー）、2-5-8（リャンウーパー）、3-6-9（サンローキュー）の3つおきの関係。相手が4（スー）を捨てていると、1（イー）と7（チー）は「両面待ち」には当たりません。（図つきの解説は「守り方」タブ）' },
   { term: 'カベ', desc: '同じ牌が4枚とも見えていること。誰も持てないので、その牌を使った両面待ちが消え、近くの牌が安全になります。（図つきの解説は「守り方」タブ）' },
   { term: '押し引き', desc: 'リーチを受けたときに、勝負する（押す）か、安全な牌で守る（降りる・オリる）かの判断。' },
   { term: '親と子', desc: '東家（トンチャ）が親。親の和了は点数が1.5倍。親が和了るかテンパイで流局すると親が続きます（連荘）。' },
@@ -49,8 +50,108 @@ function Example({ s }: { s: string }) {
   )
 }
 
+/** 牌の名前の一覧（麻雀で使う読み方） */
+function TileNames() {
+  const suits: [string, number][] = [
+    ['萬子（マンズ）＝ワン', 0],
+    ['筒子（ピンズ）＝ピン', 9],
+    ['索子（ソーズ）＝ソー', 18],
+  ]
+  return (
+    <>
+      <p>
+        数牌は「数字の読み＋種類（ワン・ピン・ソー）」で呼びます。<b>イーワン、リャンピン、サンソー</b>のように、
+        打牌を声に出すときも、この呼び方を使います。
+      </p>
+      {suits.map(([title, base]) => (
+        <div key={title} className="tn-suit">
+          <h3>{title}</h3>
+          <div className="tn-row">
+            {Array.from({ length: 9 }, (_, i) => (
+              <div key={i} className="tn-cell">
+                <TileView kind={base + i} />
+                <TileName kind={base + i} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="tn-suit">
+        <h3>字牌（ジハイ）</h3>
+        <div className="tn-row tn-honors">
+          {[27, 28, 29, 30, 31, 32, 33].map((k) => (
+            <div key={k} className="tn-cell">
+              <TileView kind={k} />
+              <TileName kind={k} />
+            </div>
+          ))}
+        </div>
+        <p className="tn-note">
+          東南西北は<b>風牌（フォンパイ）</b>、白發中は<b>三元牌（サンゲンパイ）</b>。「東場」は トンバ、「南家」は ナンチャ のように読みます。
+        </p>
+      </div>
+      <h3>数字の読み方</h3>
+      <table className="score-ref">
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>イー</td>
+            <td>2</td>
+            <td>リャン</td>
+            <td>3</td>
+            <td>サン</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>スー</td>
+            <td>5</td>
+            <td>ウー</td>
+            <td>6</td>
+            <td>ロー</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>チー</td>
+            <td>8</td>
+            <td>パー</td>
+            <td>9</td>
+            <td>キュー</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>スジ（3つおきの組）の言い方</h3>
+      <table className="score-ref">
+        <tbody>
+          <tr>
+            <td>1-4-7</td>
+            <td>イースーチー</td>
+          </tr>
+          <tr>
+            <td>2-5-8</td>
+            <td>リャンウーパー</td>
+          </tr>
+          <tr>
+            <td>3-6-9</td>
+            <td>サンローキュー</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>順子（連続した3枚）の言い方</h3>
+      <p>
+        123＝イーリャンサン、234＝リャンサンスー、345＝サンスーウー、456＝スーウーロー、567＝ウーローチー、678＝ローチーパー、789＝チーパーキュー。
+        2枚の形は 45＝スーウー のように呼びます。
+      </p>
+      <h3>端の牌</h3>
+      <p>
+        1と9の牌を<b>老頭牌（ロウトウハイ）</b>、字牌とあわせて<b>么九牌（ヤオチューハイ）</b>と呼びます。2〜8の数牌は<b>中張牌（チュンチャンパイ）</b>。
+        赤い5は<b>赤ドラ（アカドラ）</b>です。
+      </p>
+    </>
+  )
+}
+
 export function HelpScreen({ onBack }: { onBack: () => void }) {
-  const [tab, setTab] = useState<'yaku' | 'terms' | 'score' | 'app' | 'defense'>('app')
+  const [tab, setTab] = useState<'yaku' | 'terms' | 'score' | 'app' | 'defense' | 'tiles'>('app')
   return (
     <div className="page">
       <div className="page-head">
@@ -63,6 +164,7 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
         {(
           [
             ['app', 'このアプリ'],
+            ['tiles', '牌の名前'],
             ['defense', '守り方'],
             ['yaku', '役一覧'],
             ['terms', '用語'],
@@ -78,6 +180,9 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
         <div className="help-body">
           <h3>遊び方</h3>
           <p>あなた（下）と CPU 3人で対局します。自分の番になったら、手牌の牌を1回タップで選択、もう1回タップで切ります。</p>
+          <p>
+            <b>牌の名前（カタカナ）</b>：手牌の下に、牌の読み方（イーワン・リャンピン・サンソー…、字牌はトン・ナン・シャー・ペー・ハク・ハツ・チュン）が出ます。設定の「牌の名前を表示」でオン・オフできます。一覧は「牌の名前」タブにあります。
+          </p>
           <h3>打ち筋サポート</h3>
           <p>
             <b>打つ前のヒント</b>：手牌の上に記号と数字が出ます。<br />◎＝おすすめ ○＝良い △＝まあまあ ×＝シャンテン数が戻る（非推奨）
@@ -131,6 +236,11 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
           <p>局の結果画面では、和了った役をタップすると役の説明が見られます。<b>「👁 卓を見る」</b>で結果を隠して、最後の河（ロンした牌には印がつきます）を確認できます。下の「📋 結果を見る」で結果に戻り、「次の局へ」で進みます。終局の結果も同じです。</p>
         </div>
       ) : null}
+      {tab === 'tiles' ? (
+        <div className="help-body">
+          <TileNames />
+        </div>
+      ) : null}
       {tab === 'defense' ? (
         <div className="help-body">
           <SafetyGuide />
@@ -145,7 +255,7 @@ export function HelpScreen({ onBack }: { onBack: () => void }) {
                 <span className="yaku-card-read">{y.reading}</span>
                 <span className="yaku-card-han">{y.yakuman ? '役満' : y.openHan === 0 ? `${y.han}翻（門前のみ）` : y.openHan === y.han ? `${y.han}翻` : `${y.han}翻（鳴くと${y.openHan}翻）`}</span>
               </div>
-              <div className="yaku-card-desc">{y.desc}</div>
+              <div className="yaku-card-desc">{rdTiles(y.desc)}</div>
               {y.example ? <Example s={y.example.replace(/[^0-9mpsz]/g, '')} /> : null}
             </div>
           ))}

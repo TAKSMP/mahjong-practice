@@ -11,7 +11,7 @@ import {
   isTerminal,
   isWind,
   isYaochu,
-  kindShort,
+  kindLabel,
   numOf,
   suitOf,
   type Kind,
@@ -402,10 +402,10 @@ function evaluateRegular(
     fuDetail.push({ label: input.tsumo ? '平和ツモ' : '平和ロン（副底20＋門前ロン10）', fu })
   } else {
     let f = 20
-    fuDetail.push({ label: '副底', fu: 20 })
+    fuDetail.push({ label: '副底（フーテイ）', fu: 20 })
     if (menzen && !input.tsumo) {
       f += 10
-      fuDetail.push({ label: '門前ロン', fu: 10 })
+      fuDetail.push({ label: '門前（メンゼン）ロン', fu: 10 })
     }
     if (input.tsumo) {
       f += 2
@@ -418,7 +418,7 @@ function evaluateRegular(
       if (!g.open) v *= 2
       if (g.type === 'kantsu') v *= 4
       f += v
-      const name = `${g.open ? '明' : '暗'}${g.type === 'kantsu' ? '槓' : '刻'} ${kindShort(g.kind)}`
+      const name = `${g.open ? '明' : '暗'}${g.type === 'kantsu' ? '槓' : '刻'}（${g.open ? 'ミン' : 'アン'}${g.type === 'kantsu' ? 'カン' : 'コ'}） ${kindLabel(g.kind)}`
       fuDetail.push({ label: name, fu: v })
     }
     let pf = 0
@@ -427,11 +427,11 @@ function evaluateRegular(
     if (pair === roundWind) pf += 2
     if (pf) {
       f += pf
-      fuDetail.push({ label: `役牌の雀頭 ${kindShort(pair)}`, fu: pf })
+      fuDetail.push({ label: `役牌（ヤクハイ）の雀頭（ジャントウ） ${kindLabel(pair)}`, fu: pf })
     }
     if (wait === 'kanchan' || wait === 'penchan' || wait === 'tanki') {
       f += 2
-      fuDetail.push({ label: { kanchan: '嵌張待ち', penchan: '辺張待ち', tanki: '単騎待ち' }[wait], fu: 2 })
+      fuDetail.push({ label: { kanchan: '嵌張（カンチャン）待ち', penchan: '辺張（ペンチャン）待ち', tanki: '単騎（タンキ）待ち' }[wait], fu: 2 })
     }
     fu = ceil10(f)
     if (!menzen && fu === 20) fu = 30

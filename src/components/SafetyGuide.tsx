@@ -46,19 +46,19 @@ export function SafetyGuide({ focus }: { focus?: GuideTerm | null }) {
     <div className="guide">
       <p className="g-lead">
         相手が<b>リーチ</b>したら、「その人が待っていない牌」を切ればロンされません。待ちを絞り込む手がかりが、
-        <b>現物・スジ・カベ</b>の3つです。安全な順に、<b>現物 → スジ・カベ → それ以外</b>と探します。
+        <b>現物（ゲンブツ）・スジ・カベ</b>の3つです。安全な順に、<b>現物 → スジ・カベ → それ以外</b>と探します。
       </p>
 
       <section ref={reg('現物')} className="g-sec">
-        <h3>① 現物（げんぶつ）＝いちばん安全</h3>
+        <h3>① 現物（ゲンブツ）＝いちばん安全</h3>
         <p>
           そのリーチした人が<b>すでに河に捨てている牌</b>のことです。人は自分が捨てた牌では和了れない（フリテン）ので、
           <b>100%ロンされません</b>。リーチのあとに、他の人が捨てて<b>通った牌</b>も、その人にとっては現物と同じです。
         </p>
         <Example>
-          <Group tiles="5p" caption="相手の河に5筒がある" mark="safe" />
+          <Group tiles="5p" caption="相手の河にウーピンがある" mark="safe" />
           <span className="g-arrow">→</span>
-          <Group tiles="5p" caption="5筒は絶対に安全" mark="safe" />
+          <Group tiles="5p" caption="ウーピンは絶対に安全" mark="safe" />
         </Example>
         <Point>手牌の下の色バーが<span className="g-chip g-c-safe">緑</span>なら現物です。</Point>
       </section>
@@ -66,20 +66,20 @@ export function SafetyGuide({ focus }: { focus?: GuideTerm | null }) {
       <section ref={reg('スジ')} className="g-sec">
         <h3>② スジ＝比較的安全（両面待ちには当たらない）</h3>
         <p>
-          数字には、3つおきの仲間があります。<b>1-4-7 ／ 2-5-8 ／ 3-6-9</b>。この並びを「スジ」と呼びます。
-          相手が<b>4を捨てている</b>と、<b>1と7</b>が安全寄りになります。
+          数字には、3つおきの仲間があります。<b>1-4-7（イースーチー）／ 2-5-8（リャンウーパー）／ 3-6-9（サンローキュー）</b>。この並びを「スジ」と呼びます。
+          相手が<b>4（スー）を捨てている</b>と、<b>1（イー）と7（チー）</b>が安全寄りになります。
         </p>
         <Example>
-          <Group tiles="147m" caption="1・4・7のスジ" />
+          <Group tiles="147m" caption="1-4-7（イースーチー）のスジ" />
           <span className="g-arrow">／</span>
-          <Group tiles="258p" caption="2・5・8のスジ" />
+          <Group tiles="258p" caption="2-5-8（リャンウーパー）のスジ" />
           <span className="g-arrow">／</span>
-          <Group tiles="369s" caption="3・6・9のスジ" />
+          <Group tiles="369s" caption="3-6-9（サンローキュー）のスジ" />
         </Example>
         <h4>なぜ安全なの？</h4>
         <p>
-          両面待ちで<b>1萬</b>を待つ形は「2-3萬」だけで、そのとき当たり牌は<b>1萬と4萬</b>です。
-          相手は4萬を捨てているので、4萬が当たり牌の形では<b>フリテンでロンできません</b>。だから、1萬を待つ両面は成立しないのです。
+          両面（リャンメン）待ちで<b>イーワン</b>を待つ形は「リャンサンワン（2-3）」だけで、そのとき当たり牌は<b>イーワンとスーワン</b>です。
+          相手はスーワンを捨てているので、スーワンが当たり牌の形では<b>フリテンでロンできません</b>。だから、イーワンを待つ両面は成立しないのです。
         </p>
         <Example>
           <Group tiles="23m" caption="持っている形" />
@@ -87,23 +87,23 @@ export function SafetyGuide({ focus }: { focus?: GuideTerm | null }) {
           <Group tiles="1m" caption="待ち" mark="wait" />
           <Group tiles="4m" caption="待ち（捨て済み）" mark="wait" />
           <span className="g-arrow">→</span>
-          <span className="g-note">4萬を捨てているのでロンできない。1萬は両面待ちでは安全</span>
+          <span className="g-note">スーワンを捨てているのでロンできない。イーワンは両面待ちでは安全</span>
         </Example>
-        <h4>「片スジ」と「両スジ」</h4>
+        <h4>「片スジ（カタスジ）」と「両スジ（リャンスジ）」</h4>
         <p>
-          4・5・6は、スジが<b>両側</b>にあります（4なら1と7）。<b>片方だけ</b>通っているのは「片スジ」で、まだ反対側の両面待ちが残るので危険です。
+          4・5・6（スーウーロー）は、スジが<b>両側</b>にあります（4なら1と7＝イーとチー）。<b>片方だけ</b>通っているのは「片スジ」で、まだ反対側の両面待ちが残るので危険です。
           <b>両方</b>通っていれば、かなり安全です。1・2・3・7・8・9は、スジが1つなので、それが通っていれば両面待ちには当たりません。
         </p>
         <Example>
-          <Group tiles="5p" caption="5筒を切りたい…" />
+          <Group tiles="5p" caption="ウーピンを切りたい…" />
           <span className="g-arrow">→</span>
-          <Group tiles="2p" caption="2筒が通っている" mark="safe" />
-          <Group tiles="8p" caption="8筒は通っていない" mark="danger" />
+          <Group tiles="2p" caption="リャンピンが通っている" mark="safe" />
+          <Group tiles="8p" caption="パーピンは通っていない" mark="danger" />
           <span className="g-arrow">→</span>
-          <span className="g-note">5筒は片スジ。まだ当たる可能性あり</span>
+          <span className="g-note">ウーピンは片スジ（カタスジ）。まだ当たる可能性あり</span>
         </Example>
         <Point>
-          スジは「両面待ち」にしか効きません。<b>辺張（1-2で3待ち、8-9で7待ち）・嵌張（4-6で5待ち）・シャンポン・単騎</b>
+          スジは「両面待ち」にしか効きません。<b>辺張（ペンチャン：1-2でサン待ち、8-9でチー待ち）・嵌張（カンチャン：4-6でウー待ち）・シャンポン・単騎（タンキ）</b>
           には当たることがあります。「絶対」ではなく「当たりにくい」と覚えてください。
         </Point>
       </section>
@@ -115,21 +115,21 @@ export function SafetyGuide({ focus }: { focus?: GuideTerm | null }) {
           もう誰もその牌を持てません。するとその牌を使った形（順子の両面待ち）が作れなくなります。これが「カベ」です。
         </p>
         <Example>
-          <Group tiles="3m3m3m3m" caption="3萬が4枚とも見えている" mark="safe" />
+          <Group tiles="3m3m3m3m" caption="サンワンが4枚とも見えている" mark="safe" />
         </Example>
-        <p>誰も3萬を持てないので、3萬を使う待ちが消えます。</p>
+        <p>誰もサンワンを持てないので、サンワンを使う待ちが消えます。</p>
         <Example>
-          <Group tiles="23m" caption="2-3の形" dim />
+          <Group tiles="23m" caption="リャンサン（2-3）の形" dim />
           <span className="g-arrow">→</span>
-          <Group tiles="1m4m" caption="1・4萬待ちが消える" mark="safe" />
+          <Group tiles="1m4m" caption="イーワン・スーワン待ちが消える" mark="safe" />
         </Example>
         <Example>
-          <Group tiles="34m" caption="3-4の形" dim />
+          <Group tiles="34m" caption="サンスー（3-4）の形" dim />
           <span className="g-arrow">→</span>
-          <Group tiles="2m5m" caption="2・5萬待ちが消える" mark="safe" />
+          <Group tiles="2m5m" caption="リャンワン・ウーワン待ちが消える" mark="safe" />
         </Example>
         <p>
-          その結果、<b>1萬と2萬</b>は両面待ちでは当たらなくなり、<b>4萬と5萬</b>も片側の両面待ちが消えて安全寄りになります。
+          その結果、<b>イーワンとリャンワン</b>は両面待ちでは当たらなくなり、<b>スーワンとウーワン</b>も片側の両面待ちが消えて安全寄りになります。
         </p>
         <Point>
           あと<b>1枚だけ見えていない</b>（3枚見え）ときは「ワンチャンス」と言い、やや安全です。このアプリの危険度では、
@@ -138,13 +138,13 @@ export function SafetyGuide({ focus }: { focus?: GuideTerm | null }) {
       </section>
 
       <section ref={reg('字牌')} className="g-sec">
-        <h3>④ 字牌</h3>
+        <h3>④ 字牌（ジハイ）</h3>
         <p>
           字牌には順子（連続した数）がないので、スジもカベもありません。当たるのは<b>シャンポン待ち</b>や<b>単騎待ち</b>だけです。
           すでに<b>2〜3枚見えている字牌</b>は、残りが少なく、当たりにくくなります。まだ1枚も見えていない字牌（特に役牌）は意外と危険です。
         </p>
         <Example>
-          <Group tiles="東東東" caption="3枚見えている東" mark="safe" />
+          <Group tiles="東東東" caption="3枚見えている東（トン）" mark="safe" />
           <span className="g-arrow">→</span>
           <span className="g-note">残り1枚。当たるのは単騎待ちくらい</span>
         </Example>

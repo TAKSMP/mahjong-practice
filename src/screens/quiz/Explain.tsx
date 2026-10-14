@@ -13,6 +13,7 @@ import {
   type SafeRow,
 } from '../../quiz/analyze'
 import type { ChoiceQ, DiscardQ, SafeQ, ScoreQ, WaitQ } from '../../quiz/types'
+import { rd } from '../../reading'
 import { shantenText } from '../../quiz/util'
 import { TileRow } from './TileRow'
 
@@ -276,8 +277,8 @@ export function FactsExplain({ q }: { q: ChoiceQ }) {
       <div className="q-explain-title">🔎 シャンテン数の変化（エンジンで計算）</div>
       {rows.map(({ f, s }, i) => (
         <div key={i} className="q-frow">
-          <div className="q-frow-label">{f.label}</div>
-          <TileRow tiles={f.hand} size="s" />
+          <div className="q-frow-label">{rd(f.label)}</div>
+          <TileRow tiles={f.hand} size="s" named />
           <div className="q-frow-val">
             {f.melds ? `（副露${f.melds}つ）` : ''} → <b>{shantenText(s)}</b>
           </div>

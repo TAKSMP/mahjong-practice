@@ -243,7 +243,7 @@ function buildAims(ctx: AimCtx): AimDef[] {
     ),
     goal: hasId('iipeiko', 'ryanpeikou'),
     calls: 'none',
-    tip: '同じ順子を2組作ります（例：二二三三四四萬）。鳴かずに進める必要があります。',
+    tip: '同じ順子を2組作ります（例：223344萬）。鳴かずに進める必要があります。',
   })
 
   add({

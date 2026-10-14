@@ -3,7 +3,7 @@
 // 「現物・スジ・壁・字牌の見え方」から推定する。
 
 import { doraIndicators, isOpen, type GameState } from './game'
-import { doraFromIndicator, isHonor, isDragon, kindOf, numOf, type Kind } from './tiles'
+import { NUM_READING, SUIT_READING, doraFromIndicator, isHonor, isDragon, kindLabel, kindOf, numOf, type Kind } from './tiles'
 
 export interface Threat {
   seat: number
@@ -90,7 +90,7 @@ function dangerVs(s: GameState, k: Kind, target: number, seen: number[]): Danger
     return {
       score: 0,
       label: '現物',
-      reasons: [`現物：${name}がすでに捨てた牌（リーチ後に他の人が捨てて通った牌も同じ）なので、${name}にはロンされません`],
+      reasons: [`現物（ゲンブツ）：${name}がすでに捨てた牌（リーチ後に他の人が捨てて通った牌も同じ）なので、${name}にはロンされません`],
       terms: ['現物'],
     }
   }
@@ -121,12 +121,15 @@ function dangerVs(s: GameState, k: Kind, target: number, seen: number[]): Danger
   } else {
     const n = numOf(k)
     const base = k - (n - 1)
-    const S = ['萬', '筒', '索'][Math.floor(k / 9)]
+    const suit = SUIT_READING[Math.floor(k / 9)]
+    const nm = (num: number) => kindLabel(base + num - 1)
+    const sujiText = (num: number) => ['1-4-7（イースーチー）', '2-5-8（リャンウーパー）', '3-6-9（サンローキュー）'][(num - 1) % 3]
+    const pairName = (a: number, b: number) => `${NUM_READING[a - 1]}${NUM_READING[b - 1]}${suit}`
     const isSafe = (num: number) => safe.has(base + num - 1)
     const blocked = (num: number) => seen[base + num - 1] >= 4
     // 両面待ちの形：下側 (n-2,n-1) を持っていると n-3 と n を待つ。上側 (n+1,n+2) を持っていると n と n+3 を待つ。
-    const lowShape = `${n - 2}-${n - 1}${S}の形で${n - 3}・${n}${S}待ち`
-    const upShape = `${n + 1}-${n + 2}${S}の形で${n}・${n + 3}${S}待ち`
+    const lowShape = `${pairName(n - 2, n - 1)}の形で${nm(n - 3)}・${nm(n)}待ち`
+    const upShape = `${pairName(n + 1, n + 2)}の形で${nm(n)}・${nm(n + 3)}待ち`
     let open = 0
     let remain = ''
     let suji = 0
@@ -134,11 +137,11 @@ function dangerVs(s: GameState, k: Kind, target: number, seen: number[]): Danger
     if (n - 3 >= 1) {
       if (isSafe(n - 3)) {
         suji++
-        reasons.push(`スジ：${n - 3}${S}が捨てられている（通っている）ので、「${lowShape}」はありえません`)
+        reasons.push(`スジ：${nm(n - 3)}が捨てられている（${sujiText(n)}のスジ）ので、「${lowShape}」はありえません`)
       } else if (blocked(n - 1) || blocked(n - 2)) {
         kabe++
         const w = blocked(n - 1) ? n - 1 : n - 2
-        reasons.push(`カベ：${w}${S}が4枚とも見えているので、「${lowShape}」はありえません`)
+        reasons.push(`カベ：${nm(w)}が4枚とも見えているので、「${lowShape}」はありえません`)
       } else {
         open++
         remain = lowShape
@@ -147,11 +150,11 @@ function dangerVs(s: GameState, k: Kind, target: number, seen: number[]): Danger
     if (n + 3 <= 9) {
       if (isSafe(n + 3)) {
         suji++
-        reasons.push(`スジ：${n + 3}${S}が捨てられている（通っている）ので、「${upShape}」はありえません`)
+        reasons.push(`スジ：${nm(n + 3)}が捨てられている（${sujiText(n)}のスジ）ので、「${upShape}」はありえません`)
       } else if (blocked(n + 1) || blocked(n + 2)) {
         kabe++
         const w = blocked(n + 1) ? n + 1 : n + 2
-        reasons.push(`カベ：${w}${S}が4枚とも見えているので、「${upShape}」はありえません`)
+        reasons.push(`カベ：${nm(w)}が4枚とも見えているので、「${upShape}」はありえません`)
       } else {
         open++
         remain = remain ? `${remain}」か「${upShape}` : upShape

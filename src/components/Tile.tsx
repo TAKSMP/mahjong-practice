@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { kindLabel, type Kind } from '../engine/tiles'
+import { kindParts, type Kind } from '../engine/tiles'
 import { TileFace } from './TileFace'
 
 export interface TileProps {
@@ -22,7 +22,19 @@ export const TileView = memo(function TileView({ kind, red, back, sideways, dim,
   return (
     <div className={cls} onClick={onClick} role={onClick ? 'button' : undefined}>
       <div className="tile-body">{back ? null : <TileFace kind={kind} red={red} />}</div>
-      {label && !back ? <div className="tile-label">{kindLabel(kind)}</div> : null}
+      {label && !back ? <TileName kind={kind} className="tile-label" /> : null}
     </div>
   )
 })
+
+/** 牌の読み方（カタカナ）を、数字と種類の2段で見せる。例: ウー / ワン */
+export function TileName({ kind, className = '' }: { kind: Kind; className?: string }) {
+  const parts = kindParts(kind)
+  return (
+    <div className={`tile-name ${className}`}>
+      {parts.map((p, i) => (
+        <span key={i}>{p}</span>
+      ))}
+    </div>
+  )
+}

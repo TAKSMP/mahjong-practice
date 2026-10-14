@@ -1,7 +1,7 @@
 // 定石クイズの解析：問題の「正解」と「理由の数字」は、麻雀エンジンの計算結果を使う
 
 import { shanten, ukeire, waitingKinds, type UkeireTile } from '../engine/shanten'
-import { doraFromIndicator, kindsToCounts, numOf, parseKinds, suitOf, type Kind } from '../engine/tiles'
+import { doraFromIndicator, kindLabel, kindsToCounts, numOf, parseKinds, type Kind } from '../engine/tiles'
 import { calcPayment, evaluateWin, paymentLabel, type MeldInfo, type WinResult } from '../engine/yaku'
 import type { DiscardQ, Meld, SafeQ, ScoreQ, Situation, WaitQ } from './types'
 
@@ -144,7 +144,8 @@ export function analyzeSafety(q: Pick<SafeQ, 'river' | 'hand' | 'seen'>): SafeRo
   const riverSet = new Set(river)
   const seenCounts = kindsToCounts([...hand, ...river, ...parseKinds(q.seen ?? '')])
   const left = (k: Kind) => 4 - seenCounts[k] // 相手が持てる残り枚数
-  const name = (x: Kind) => `${numOf(x)}${['萬', '筒', '索'][suitOf(x)]}`
+  const name = (x: Kind) => kindLabel(x)
+  const sujiText = (n: number) => ['1-4-7（イースーチー）', '2-5-8（リャンウーパー）', '3-6-9（サンローキュー）'][(n - 1) % 3]
   const rows: SafeRow[] = []
   for (const k of new Set(hand)) {
     if (riverSet.has(k)) {
@@ -171,7 +172,7 @@ export function analyzeSafety(q: Pick<SafeQ, 'river' | 'hand' | 'seen'>): SafeRo
       ryanmenSides++
       if (riverSet.has(k + 3)) {
         sujiHit++
-        notes.push(`${name(k + 3)}が現物（スジ）`)
+        notes.push(`${name(k + 3)}が現物（${sujiText(n)}のスジ）`)
       } else if (left(k + 1) <= 0 || left(k + 2) <= 0) {
         kabeHit = true
         notes.push(`${name(left(k + 1) <= 0 ? k + 1 : k + 2)}が4枚見え（カベ）`)
@@ -185,7 +186,7 @@ export function analyzeSafety(q: Pick<SafeQ, 'river' | 'hand' | 'seen'>): SafeRo
       ryanmenSides++
       if (riverSet.has(k - 3)) {
         sujiHit++
-        notes.push(`${name(k - 3)}が現物（スジ）`)
+        notes.push(`${name(k - 3)}が現物（${sujiText(n)}のスジ）`)
       } else if (left(k - 1) <= 0 || left(k - 2) <= 0) {
         kabeHit = true
         notes.push(`${name(left(k - 1) <= 0 ? k - 1 : k - 2)}が4枚見え（カベ）`)

@@ -131,6 +131,7 @@ export function App() {
       <div className="app">
         <QuizScreen
           progress={quiz}
+          showNames={settings.showNames}
           onProgress={setQuiz}
           onResetProgress={() => setQuiz(structuredClone(EMPTY_QUIZ))}
           onBack={() => setScreen('title')}

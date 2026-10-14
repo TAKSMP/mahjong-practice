@@ -169,7 +169,7 @@ describe('採点と進み具合', () => {
   it('手牌を理牌して、最後の1枚（ツモ牌）はそのまま右端に置く', async () => {
     const { arrangeHand } = await import('../util')
     const s = arrangeHand('3m1p5m2p9m').map((t) => kindLabel(t.kind)).join(' ')
-    expect(s).toBe('3萬 5萬 1筒 2筒 9萬')
+    expect(s).toBe('サンワン ウーワン イーピン リャンピン キューワン')
     // 3枚（ツモ牌なし）は全部並べ替える。同じ牌なら赤が先
     const t = arrangeHand('5p6p0p').map((x) => `${x.kind}${x.red ? 'r' : ''}`)
     expect(t).toEqual(['13r', '13', '14'])

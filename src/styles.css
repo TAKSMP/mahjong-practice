@@ -155,11 +155,23 @@ button {
   left: 50%;
   transform: translateX(-50%);
   margin-top: calc(var(--tw) * 0.14);
-  font-size: max(9px, calc(var(--tw) * 0.36));
-  line-height: 1;
+  font-size: max(8px, calc(var(--tw) * 0.3));
+}
+
+/* 牌の読み方（2段：イー / ピン） */
+.tile-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
   color: #d9eadf;
+  font-weight: 700;
   white-space: nowrap;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.06em;
+}
+
+.tile-name span {
+  display: block;
 }
 
 .tile-xs {
@@ -825,11 +837,8 @@ button {
 
 .hand-name {
   margin-top: 3px;
-  font-size: max(9px, calc(var(--ht) * 0.36));
-  line-height: 1;
-  color: #d9eadf;
-  white-space: nowrap;
-  letter-spacing: -0.04em;
+  font-size: max(7.5px, calc(var(--ht) * 0.3));
+  min-height: 2.1em;
 }
 
 .danger-safe,
@@ -3418,4 +3427,74 @@ button {
 .q-res-row.more {
   color: #6b766f;
   font-size: 12px;
+}
+
+/* クイズ：牌の下の読み方（カタカナ） */
+.q-name {
+  margin-top: 2px;
+  font-size: max(6.5px, calc(var(--q-hw) * 0.34));
+  color: #d9eadf;
+}
+
+.q-name.dark {
+  color: #4a574f;
+}
+
+.q-named {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.q-tiles.with-names {
+  align-items: flex-start;
+}
+
+.q-hand-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 解説：牌の名前の一覧 */
+.tn-suit {
+  margin: 10px 0;
+}
+
+.tn-suit h3 {
+  margin: 8px 0 4px;
+}
+
+.tn-row {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  background: #1b5c3e;
+}
+
+.tn-row.tn-honors {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.tn-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.tn-cell .tile {
+  --tw: min(30px, calc((min(100vw, 560px) - 24px - 28px - 36px) / 9));
+}
+
+.tn-cell .tile-name {
+  font-size: 10px;
+  color: #fff;
+}
+
+.tn-note {
+  font-size: 12.5px;
+  color: #3b4842;
 }

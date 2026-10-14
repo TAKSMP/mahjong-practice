@@ -89,3 +89,6 @@ export function shantenText(n: number): string {
 }
 
 export const WIND_JP = ['東', '南', '西', '北']
+/** 場風・自風の言い方（東場＝トンバ、南家＝ナンチャ） */
+export const WIND_BA = ['トンバ', 'ナンバ']
+export const WIND_CHA = ['トンチャ', 'ナンチャ', 'シャーチャ', 'ペーチャ']

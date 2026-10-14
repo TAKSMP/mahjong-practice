@@ -50,9 +50,9 @@ const SUIT_CHAR = ['m', 'p', 's']
 const HONOR_SHORT = ['東', '南', '西', '北', '白', '發', '中']
 const KANJI_NUM = ['一', '二', '三', '四', '五', '六', '七', '八', '九']
 const SUIT_JP = ['萬', '筒', '索']
-const READ_NUM = ['イー', 'リャン', 'サン', 'スー', 'ウー', 'ロー', 'チー', 'パー', 'チュー']
-const READ_SUIT = ['ワン', 'ピン', 'ソー']
-const HONOR_READ = ['トン', 'ナン', 'シャー', 'ペー', 'ハク', 'ハツ', 'チュン']
+export const NUM_READING = ['イー', 'リャン', 'サン', 'スー', 'ウー', 'ロー', 'チー', 'パー', 'キュー']
+export const SUIT_READING = ['ワン', 'ピン', 'ソー']
+export const HONOR_READING = ['トン', 'ナン', 'シャー', 'ペー', 'ハク', 'ハツ', 'チュン']
 
 /** 例: 5m / 東 */
 export function kindShort(k: Kind): string {
@@ -60,22 +60,31 @@ export function kindShort(k: Kind): string {
   return `${numOf(k)}${SUIT_CHAR[suitOf(k)]}`
 }
 
-/** 例: 5萬 / 東 （画面表示用のやさしい名前） */
+/** 例: ウーワン / ペー （牌の読み方。カタカナだけ） */
+export function kindReading(k: Kind): string {
+  if (k >= 27) return HONOR_READING[k - 27]
+  return NUM_READING[numOf(k) - 1] + SUIT_READING[suitOf(k)]
+}
+
+/** 牌の下に2段で出す読み方。例: ['ウー', 'ワン'] / ['ペー'] */
+export function kindParts(k: Kind): string[] {
+  if (k >= 27) return [HONOR_READING[k - 27]]
+  return [NUM_READING[numOf(k) - 1], SUIT_READING[suitOf(k)]]
+}
+
+/**
+ * 画面の文章に出す牌の名前。数牌は麻雀で使う読み方（イーピン・ウーワン…）、字牌は 北（ペー）。
+ * 例: 5萬 → ウーワン / 東 → 東（トン）
+ */
 export function kindLabel(k: Kind): string {
-  if (k >= 27) return HONOR_SHORT[k - 27]
-  return `${numOf(k)}${SUIT_JP[suitOf(k)]}`
+  if (k >= 27) return `${HONOR_SHORT[k - 27]}（${HONOR_READING[k - 27]}）`
+  return kindReading(k)
 }
 
 /** 例: 五萬 */
 export function kindKanji(k: Kind): string {
   if (k >= 27) return HONOR_SHORT[k - 27]
   return `${KANJI_NUM[numOf(k) - 1]}${SUIT_JP[suitOf(k)]}`
-}
-
-/** 例: ウーワン */
-export function kindReading(k: Kind): string {
-  if (k >= 27) return HONOR_READ[k - 27]
-  return READ_NUM[numOf(k) - 1] + READ_SUIT[suitOf(k)]
 }
 
 export const WIND_NAMES = ['東', '南', '西', '北']

@@ -1,5 +1,6 @@
 // 今狙える役の一覧（見込み%つき）。卓の代わりに表示する。
 
+import { rdTiles } from '../reading'
 import { useEffect, useState } from 'react'
 import { createAimJob, type AimRow, type AimSnapshot } from '../engine/aim'
 import { doraIndicators, liveRemaining, type GameState } from '../engine/game'
@@ -81,20 +82,20 @@ function Row({ r, open, expanded, onToggle }: { r: AimRow; open: boolean; expand
   return (
     <div className={`aim-row ${expanded ? 'open' : ''}`}>
       <button className="aim-row-main" onClick={onToggle} aria-expanded={expanded}>
-        <span className="aim-name">{r.label}</span>
+        <span className="aim-name">{rdTiles(r.label)}</span>
         <span className="aim-han">{hanChip(r, open)}</span>
         <span className={`aim-pct ${probClass(r.prob)}`}>{pctText(r.prob)}</span>
         <span className="aim-bar">
           <span className={probClass(r.prob)} style={{ width: `${pct}%` }} />
         </span>
-        <span className="aim-sub">{r.dist < 0 ? '完成しています！' : r.lines[0]}</span>
+        <span className="aim-sub">{r.dist < 0 ? '完成しています！' : rdTiles(r.lines[0])}</span>
         <span className="aim-caret">{expanded ? '▲' : '▼'}</span>
       </button>
       {expanded ? (
         <div className="aim-detail">
           {info ? (
             <p className="aim-desc">
-              <b>{info.name}</b>（{info.reading}）：{info.desc}
+              <b>{info.name}</b>（{info.reading}）：{rdTiles(info.desc)}
             </p>
           ) : null}
           {info?.example ? (
@@ -105,7 +106,7 @@ function Row({ r, open, expanded, onToggle }: { r: AimRow; open: boolean; expand
           ) : null}
           {r.lines.slice(1).map((l, i) => (
             <p key={i} className="aim-line">
-              {l}
+              {rdTiles(l)}
             </p>
           ))}
           {r.needed.length > 0 && r.dist >= 0 ? (
@@ -134,7 +135,7 @@ function Row({ r, open, expanded, onToggle }: { r: AimRow; open: boolean; expand
               <Tiles kinds={r.junk} dim />
             </div>
           ) : null}
-          <p className="aim-tip">💡 {r.tip}</p>
+          <p className="aim-tip">💡 {rdTiles(r.tip)}</p>
           {r.closedOnly ? <p className="aim-line warn">鳴くとこの役は成立しません。</p> : null}
         </div>
       ) : null}

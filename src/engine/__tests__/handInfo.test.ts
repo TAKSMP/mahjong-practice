@@ -26,8 +26,8 @@ describe('相手の手牌の状態', () => {
     expect(st.tenpai).toBe(true)
     expect(st.furiten).toBe(false)
     expect(st.text).toContain('テンパイ')
-    expect(st.text).toContain('6萬')
-    expect(st.text).toContain('7筒')
+    expect(st.text).toContain('ローワン')
+    expect(st.text).toContain('チーピン')
   })
 
   it('シャンテン数', () => {
